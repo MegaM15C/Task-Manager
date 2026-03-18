@@ -28,7 +28,7 @@ from src.ui.widgets.task_item import TaskItemWidget
 
 
 class MainWindow(QMainWindow):
-    """Главное окно приложения «Активa».
+    """Главное окно приложения.
 
     Отвечает за:
     - инициализацию репозиториев и загрузку данных;
@@ -60,14 +60,14 @@ class MainWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         """Создаёт все виджеты главного окна и настраивает layout-ы."""
-        self.setWindowTitle("Активa — Task Manager")
+        self.setWindowTitle("Менеджер задач")
         self.setFixedSize(1024, 768)
 
         root = QWidget(self)
         self.setCentralWidget(root)
         layout = QHBoxLayout(root)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setContentsMargins(10, 10, 10, 10)
+        # layout.setSpacing(10)
 
         self.sidebar = Sidebar(root)
         self.sidebar.pin_btn.toggled.connect(self._on_pin_toggled)
@@ -90,27 +90,50 @@ class MainWindow(QMainWindow):
 
         self._main = QFrame(root)
         self._main.setObjectName("MainArea")
+        self._main.setFixedHeight(750)
+        # self._main.setStyleSheet('border: 1px solid #000000') # Debug: показывает все границы элементов
         m = QVBoxLayout(self._main)
         m.setContentsMargins(18, 18, 18, 18)
         m.setSpacing(14)
         layout.addWidget(self._main, 1)
 
-        header = QHBoxLayout()
-        header.setContentsMargins(0, 0, 0, 0)
-        self._view_icon = QLabel("🗒", self._main)
-        self._view_icon.setFixedWidth(22)
-        self._view_title = QLabel("Все задачи", self._main)
-        self._view_title.setObjectName("ViewTitle")
-        self._view_title.setStyleSheet("QLabel#ViewTitle { font-size: 18px; font-weight: 900; }")
-        header.addWidget(self._view_icon)
-        header.addWidget(self._view_title)
-        header.addStretch(1)
+        # Оборачиваем header в QWidget
+        header_widget = QWidget(self._main)
+        header_widget.setObjectName("Header")
+        print(header_widget.styleSheet())
 
-        add_task = QPushButton("+ Добавить задачу", self._main)
+        # Создаём layout для header
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(8, 8, 8, 8)
+        header_layout.setSpacing(8)
+
+        # Иконка вида
+        self._view_icon = QLabel("🗒", header_widget)
+        self._view_icon.setFixedWidth(30)
+        self._view_icon.setStyleSheet("font-size: 30px;")
+        header_layout.addWidget(self._view_icon)
+
+        # Заголовок вида
+        self._view_title = QLabel("Все задачи", header_widget)
+        self._view_title.setObjectName("ViewTitle")
+        self._view_title.setStyleSheet("""
+        QLabel#ViewTitle {
+            font-size: 18px;
+            font-weight: 900;
+        }""")
+        header_layout.addWidget(self._view_title)
+
+        # Раздвигаем содержимое
+        header_layout.addStretch(1)
+
+        # Кнопка "Добавить задачу"
+        add_task = QPushButton("+ Добавить задачу", header_widget)
         add_task.setObjectName("PrimaryButton")
         add_task.clicked.connect(self._open_create_task)
-        header.addWidget(add_task)
-        m.addLayout(header)
+        header_layout.addWidget(add_task)
+
+        # Добавляем header_widget в основной layout
+        m.addWidget(header_widget)
 
         self._scroll = QScrollArea(self._main)
         self._scroll.setWidgetResizable(True)

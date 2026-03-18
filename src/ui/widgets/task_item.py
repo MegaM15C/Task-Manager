@@ -5,8 +5,9 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
+
 from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve 
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QBrush
 from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
@@ -70,6 +71,7 @@ class CategoryPill(QFrame):
         self._apply_icon()
         self._apply_style()
 
+
     def _apply_icon(self) -> None:
         """Пробует загрузить и показать иконку категории из директории icons_dir."""
         if not self._category.icon_filename:
@@ -79,10 +81,27 @@ class CategoryPill(QFrame):
         if not p.exists():
             self._icon.hide()
             return
+
         pix = QPixmap(str(p))
         if pix.isNull():
             self._icon.hide()
             return
+
+        # Размер иконки
+        size = min(self._icon.width(), self._icon.height())
+        pix = pix.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+
+        # Создаём круг
+        mask = QPixmap(size, size)
+        mask.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(mask)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QBrush(Qt.GlobalColor.white))
+        painter.drawEllipse(0, 0, size, size)
+        painter.end()
+
+        pix.setMask(mask.createMaskFromColor(Qt.GlobalColor.transparent, Qt.MaskMode.MaskInColor))
+
         self._icon.setPixmap(pix)
         self._icon.show()
 

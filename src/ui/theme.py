@@ -48,13 +48,19 @@ def tokens_from_settings(s: Settings) -> ThemeTokens:
     )
 
 
+
 def app_qss(tokens: ThemeTokens) -> str:
+    
     """Генерирует общую QSS-строку для приложения на основе токенов темы."""
     return f"""
     * {{
         font-size: 13px;
         color: {tokens.text};
     }}
+    QWidget#Header {{
+            background-color: {tokens.accent}80 ;  /* или любой цвет/токен */
+            border-radius: 12px;                     /* скругление */
+        }}
     QWidget {{
         background: {tokens.bg};
     }}
@@ -122,7 +128,8 @@ def app_qss(tokens: ThemeTokens) -> str:
     /* Sidebar */
     QFrame#Sidebar {{
         background: {tokens.surface};
-        border-right: 1px solid {tokens.border};
+        border: 1px solid {tokens.border};
+        border-radius: 12px
     }}
     QLabel#SidebarSectionLabel {{
         color: {tokens.text_muted};
@@ -135,6 +142,10 @@ def app_qss(tokens: ThemeTokens) -> str:
         border-radius: 10px;
     }}
 
+    QFrame#MainArea {{
+        border: 1px solid {tokens.border};
+        border-radius: 14px;
+    }}
     /* Task item rows */
     QFrame#TaskItem {{
         background: {tokens.surface};

@@ -143,6 +143,7 @@ class SettingsDialog(OverlayDialog):
     def _pick_accent(self) -> None:
         """Открывает цветовой диалог и обновляет текущий акцентный цвет."""
         c = QColorDialog.getColor(QColor(self._settings.accent_color), self, "Акцентный цвет")
+        print(c.name())
         if not c.isValid():
             return
         self._settings = Settings(

@@ -28,7 +28,11 @@ class Sidebar(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("Sidebar")
+        self.setFixedHeight(750)
+        # screen_height = self.parent().height()  # или QApplication.primaryScreen().size().height()
         self.setFixedWidth(300)
+        # self.setFixedHeight(int(screen_height))  # 60% от высоты экрана
+        # self.setStyleSheet("border-radius: 24px")
 
         root = QVBoxLayout(self)
         root.setContentsMargins(14, 14, 14, 14)
@@ -36,13 +40,17 @@ class Sidebar(QFrame):
 
         top = QHBoxLayout()
         top.setContentsMargins(0, 0, 0, 0)
-        title = QLabel("Меню", self)
+        title = QLabel("<b>Меню</b>", self)
+        title.setStyleSheet("" \
+            "font-size: 28px",
+
+        )
         title.setObjectName("SidebarTitle")
         top.addWidget(title)
         top.addStretch(1)
 
         self.pin_btn = QToolButton(self)
-        #self.pin_btn.setCheckable(True)
+        self.pin_btn.setCheckable(True)
         self.pin_btn.setText("📌")
         self.pin_btn.setToolTip("Закрепить сайдбар")
         self.pin_btn.setObjectName("PinButton")
@@ -74,8 +82,9 @@ class Sidebar(QFrame):
 
         self._cats_container = QWidget(self)
         self._cats_layout = QVBoxLayout(self._cats_container)
+        self._cats_container.setStyleSheet('border-radius: 6px')
         self._cats_layout.setContentsMargins(0, 0, 0, 0)
-        self._cats_layout.setSpacing(8)
+        self._cats_layout.setSpacing(4)
         self._cats_layout.addStretch(1)
 
         scroll = QScrollArea(self)
@@ -135,9 +144,9 @@ class Sidebar(QFrame):
                 pass
 
         for c in categories:
-            b = QPushButton(f"🏷  {c.name}", self._cats_container)
+            b = QPushButton(f"{c.name}", self._cats_container)
             b.setObjectName("NavButton")
-            b.setStyleSheet(f"QPushButton#NavButton{{ border-left: 6px solid {c.color}; }}")
+            b.setStyleSheet(f"QPushButton#NavButton{{ border-left: 2px solid {c.color}; font-size: 16px}}")
             b.clicked.connect(lambda _=False, cid=c.id: self.view_selected.emit(f"category:{cid}"))
             self._cats_layout.addWidget(b)
 
