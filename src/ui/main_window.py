@@ -26,7 +26,8 @@ from src.core.repositories import CategoriesRepository, SettingsRepository, Task
 from src.ui.dialogs.create_category_dialog import CreateCategoryDialog
 from src.ui.dialogs.create_task_dialog import CreateTaskDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
-from src.ui.theme import app_qss, font_from_settings, tokens_from_settings
+from src.theme.theme import tokens_from_settings
+from src.ui.styles.app import app_qss, font_from_settings
 from src.ui.widgets.sidebar import Sidebar
 from src.ui.widgets.task_item import TaskItemWidget
 from src.utils.buttons import HoverEffect
@@ -153,11 +154,6 @@ class MainWindow(QMainWindow):
         # Заголовок вида
         self._view_title = QLabel("Все задачи", header_widget)
         self._view_title.setObjectName("ViewTitle")
-        self._view_title.setStyleSheet("""
-        QLabel#ViewTitle {
-            font-size: 18px;
-            font-weight: 900;
-        }""")
         self._view_icon.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         header_layout.addWidget(self._view_title)
 
@@ -186,7 +182,6 @@ class MainWindow(QMainWindow):
         self._spinner = QLabel("Загружаем задачи…", self._list_host)
         self._spinner.setAlignment(Qt.AlignCenter)
         self._spinner.setObjectName("LoadingSpinner")
-        self._spinner.setStyleSheet("QLabel#LoadingSpinner { opacity: 0.7; padding: 10px; }")
         self._spinner.hide()
         self._empty_state = QLabel("Задач не осталось, Вы хорошо постарались", self._list_host)
         self._empty_state.setAlignment(Qt.AlignCenter)

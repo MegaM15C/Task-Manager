@@ -18,7 +18,7 @@ from PySide6.QtCore import QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QPixmap
 from src.core.models import Category
 from src.utils.buttons import HoverEffect
-from src.ui.theme import ThemeTokens
+from src.ui.styles.app import ThemeTokens
 
 from src.core.paths import AppPaths
 from src.core.repositories import SettingsRepository
