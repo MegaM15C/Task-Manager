@@ -3,7 +3,7 @@ from __future__ import annotations
 """Основные модели данных приложения (настройки, категории, задачи)."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import Literal, Optional
 
 
@@ -44,13 +44,17 @@ class Task:
         title: Заголовок/краткое описание задачи.
         category_id: ID категории, к которой относится задача, или None.
         due: Дата дедлайна или None, если не задана.
+        priority: Приоритет задачи. Чем больше — тем важнее (сортируется выше).
         important: Флаг «важная» задача.
         done: Флаг выполнения.
+        done_at: Дата-время, когда задача была отмечена выполненной (для сортировки в «Выполненные»).
     """
 
     id: str
     title: str
     category_id: Optional[str]
     due: Optional[date]
+    priority: int = 0
     important: bool = False
     done: bool = False
+    done_at: Optional[datetime] = None

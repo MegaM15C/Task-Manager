@@ -89,7 +89,12 @@ class CategoryPill(QFrame):
 
         # Размер иконки
         size = min(self._icon.width(), self._icon.height())
-        pix = pix.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+        pix = pix.scaled(
+            size,
+            size,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
 
         # Создаём круг
         mask = QPixmap(size, size)
@@ -157,6 +162,28 @@ class TaskItemWidget(QFrame):
         self._title.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout.addWidget(self._title, 1, Qt.AlignVCenter)
 
+        self._important = QLabel("", self)
+        self._important_icon = QPixmap(
+            "resources/icons/important_mask.png" if task.important else ""
+        )
+        self._important.setPixmap(self._important_icon)
+        self._important.setScaledContents(True)
+        self._important.setObjectName("TaskImportant")
+        self._important.setFixedWidth(20)
+        self._important.setFixedHeight(20)
+        self._important.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self._important, 0, Qt.AlignVCenter)
+
+        self._priority = QLabel(self)
+        self._priority.setObjectName("TaskPriority")
+        self._priority.setFixedWidth(34)
+        self._priority.setAlignment(Qt.AlignCenter)
+        self._priority.setProperty("priority", int(task.priority))
+        self._priority.style().unpolish(self._priority)
+        self._priority.style().polish(self._priority)
+        self._priority.setText(f"П{max(0, int(task.priority))}")
+        layout.addWidget(self._priority, 0, Qt.AlignVCenter)
+
         self._pill: QWidget
         if category:
             self._pill = CategoryPill(paths, category, self)
@@ -180,6 +207,12 @@ class TaskItemWidget(QFrame):
         self._title.setStyleSheet("QLabel#TaskTitle { font-weight: 600; }")
         self._menu.setStyleSheet(
             "QPushButton#MenuButton { border-radius: 10px; padding: 0px; font-size: 18px; }"
+        )
+        self._priority.setStyleSheet(
+            "QLabel#TaskPriority { font-weight: 800; opacity: 0.8; }"
+        )
+        self._important.setStyleSheet(
+            "QLabel#TaskImportant { font-size: 14px; }"
         )
 
     def _on_done_changed(self) -> None:

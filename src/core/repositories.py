@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 import uuid
 from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -23,19 +23,23 @@ def _task_to_json(task: Task) -> dict:
     """Преобразует объект Task в словарь, готовый к сериализации в JSON."""
     d = asdict(task)
     d["due"] = task.due.isoformat() if task.due else None
+    d["done_at"] = task.done_at.isoformat() if task.done_at else None
     return d
 
 
 def _task_from_json(d: dict) -> Task:
     """Создаёт объект Task из словаря, прочитанного из JSON."""
     due = d.get("due")
+    done_at = d.get("done_at")
     return Task(
         id=str(d["id"]),
         title=str(d.get("title", "")),
         category_id=d.get("category_id"),
         due=date.fromisoformat(due) if due else None,
+        priority=int(d.get("priority", 0) or 0),
         important=bool(d.get("important", False)),
         done=bool(d.get("done", False)),
+        done_at=datetime.fromisoformat(done_at) if done_at else None,
     )
 
 
@@ -113,6 +117,20 @@ class CategoriesRepository:
         self.save_all(cats)
         return cat
 
+    def delete_by_id(self, cat_id: str) -> bool:
+        """Удаляет категорию по ID из JSON и файл иконки в icons_dir, если был."""
+        cats = self.load_all()
+        removed = next((c for c in cats if c.id == cat_id), None)
+        if removed is None:
+            return False
+        remaining = [c for c in cats if c.id != cat_id]
+        if removed.icon_filename:
+            icon_path = self._paths.icons_dir / removed.icon_filename
+            if icon_path.exists():
+                icon_path.unlink()
+        self.save_all(remaining)
+        return True
+
 
 class TasksRepository:
     """Репозиторий задач с постраничным хранением в JSON.
@@ -125,6 +143,9 @@ class TasksRepository:
     def __init__(self, paths: AppPaths, *, page_size: int = 25) -> None:
         self._paths = paths
         self._page_size = page_size
+
+    def page_size(self) -> int:
+        return self._page_size
 
     def _page_files(self) -> list[Path]:
         """Возвращает отсортированный список файлов страниц с задачами."""
@@ -157,11 +178,26 @@ class TasksRepository:
             return []
         return [_task_from_json(x) for x in raw if isinstance(x, dict)]
 
+    def load_all(self) -> list[Task]:
+        """Загружает все задачи из всех страниц (без сортировки)."""
+        tasks: list[Task] = []
+        for i in range(self.page_count()):
+            tasks.extend(self.load_page(i))
+        return tasks
+
     def page_count(self) -> int:
         """Возвращает текущее количество файлов-страниц."""
         return len(self._page_files())
 
-    def add(self, title: str, *, category_id: Optional[str], due: Optional[date]) -> Task:
+    def add(
+        self,
+        title: str,
+        *,
+        category_id: Optional[str],
+        due: Optional[date],
+        priority: int = 0,
+        important: bool = False,
+    ) -> Task:
         """Создаёт новую задачу и добавляет её в последнюю страницу.
 
         Если последняя страница заполнена (page_size), создаётся новый файл.
@@ -171,8 +207,10 @@ class TasksRepository:
             title=title.strip(),
             category_id=category_id,
             due=due,
-            important=False,
+            priority=int(priority),
+            important=bool(important),
             done=False,
+            done_at=None,
         )
 
         files = self._page_files()
@@ -222,9 +260,111 @@ class TasksRepository:
                     continue
                 if str(item.get("id")) == task_id:
                     item["done"] = bool(done)
+                    item["done_at"] = datetime.now(timezone.utc).isoformat() if done else None
                     updated = True
                     break
             if updated:
                 write_json_atomic(path, raw)
                 return True
         return False
+
+    def get_by_id(self, task_id: str) -> Optional[Task]:
+        """Возвращает задачу по ID или None, если не найдена."""
+        files = self._page_files()
+        for path in files:
+            raw = read_json(path, default=[])
+            if not isinstance(raw, list):
+                continue
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("id")) == task_id:
+                    return _task_from_json(item)
+        return None
+
+    def update(
+        self,
+        task_id: str,
+        *,
+        title: str,
+        category_id: Optional[str],
+        due: Optional[date],
+        priority: int,
+        important: bool,
+    ) -> bool:
+        """Обновляет поля задачи по ID."""
+        files = self._page_files()
+        for path in files:
+            raw = read_json(path, default=[])
+            if not isinstance(raw, list):
+                continue
+            updated = False
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("id")) == task_id:
+                    item["title"] = title.strip()
+                    item["category_id"] = category_id
+                    item["due"] = due.isoformat() if due else None
+                    item["priority"] = int(priority)
+                    item["important"] = bool(important)
+                    updated = True
+                    break
+            if updated:
+                write_json_atomic(path, raw)
+                return True
+        return False
+
+    def set_important(self, task_id: str, important: bool) -> bool:
+        """Обновляет флаг важности задачи по ID."""
+        files = self._page_files()
+        for path in files:
+            raw = read_json(path, default=[])
+            if not isinstance(raw, list):
+                continue
+            updated = False
+            for item in raw:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("id")) == task_id:
+                    item["important"] = bool(important)
+                    updated = True
+                    break
+            if updated:
+                write_json_atomic(path, raw)
+                return True
+        return False
+
+    def delete(self, task_id: str) -> bool:
+        """Удаляет задачу по ID."""
+        files = self._page_files()
+        for path in files:
+            raw = read_json(path, default=[])
+            if not isinstance(raw, list):
+                continue
+            before = len(raw)
+            raw = [x for x in raw if not (isinstance(x, dict) and str(x.get("id")) == task_id)]
+            if len(raw) != before:
+                write_json_atomic(path, raw)
+                return True
+        return False
+
+    def delete_all_by_category_id(self, category_id: str) -> int:
+        """Удаляет все задачи с указанной категорией со всех страниц. Возвращает число удалённых задач."""
+        removed = 0
+        for path in self._page_files():
+            raw = read_json(path, default=[])
+            if not isinstance(raw, list):
+                continue
+            new_raw: list = []
+            for item in raw:
+                if not isinstance(item, dict):
+                    new_raw.append(item)
+                    continue
+                if str(item.get("category_id")) == category_id:
+                    removed += 1
+                    continue
+                new_raw.append(item)
+            if len(new_raw) != len(raw):
+                write_json_atomic(path, new_raw)
+        return removed

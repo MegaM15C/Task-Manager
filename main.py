@@ -1,25 +1,37 @@
-"""Точка входа в приложение Task-Manager.
-
-Здесь создаётся объект QApplication, главное окно и запускается цикл
-обработки событий Qt.
-"""
-
 import sys
+import os
+import platform
 
 from PySide6.QtWidgets import QApplication
-
+from PySide6.QtGui import QIcon
 from src.ui.main_window import MainWindow
 
 
-def main() -> int:
-    """Создаёт приложение Qt, главное окно и запускает цикл событий.
+def setup_app(app: QApplication):
+    icon_path = "resources/icons/app_icon.png"
 
-    Возвращает:
-        Код завершения приложения, который далее передаётся в SystemExit.
-    """
+    app.setWindowIcon(QIcon(icon_path))
+    app.setApplicationName("task-manager")
+
+    system = platform.system()
+
+    if system == "Windows":
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "task.manager.app"
+        )
+
+    elif system == "Linux":
+        app.setDesktopFileName("task-manager")
+
+
+def main() -> int:
     app = QApplication(sys.argv)
+    setup_app(app)
+
     window = MainWindow()
     window.show()
+
     return app.exec()
 
 

@@ -8,9 +8,9 @@ from PySide6.QtWidgets import QComboBox, QColorDialog, QFrame, QHBoxLayout, QLab
 
 from src.core.models import Settings
 from src.ui.widgets.overlay_dialog import OverlayDialog
+from src.utils.utils import DialogHelperMixin
 
-
-class SettingsDialog(OverlayDialog):
+class SettingsDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Настройки» поверх главного окна."""
 
     def __init__(self, parent, settings: Settings) -> None:
@@ -65,7 +65,7 @@ class SettingsDialog(OverlayDialog):
         self._apply_initial()
 
         self._save = QPushButton("Сохранить", self)
-        self._save.setObjectName("PrimaryButton")
+        self._save.setObjectName("AcceptButton")
         self._save.clicked.connect(self.accept)
         cancel = QPushButton("Отменить", self)
         cancel.clicked.connect(self.reject)
@@ -74,45 +74,6 @@ class SettingsDialog(OverlayDialog):
         self.footer.addWidget(cancel)
         self.footer.addWidget(self._save)
 
-    def _divider(self) -> QFrame:
-        """Создаёт горизонтальный разделитель между строками настроек."""
-        line = QFrame(self)
-        line.setFrameShape(QFrame.HLine)
-        line.setStyleSheet("QFrame { color: rgba(100,100,100,0); }")
-        return line
-
-    def _row(
-        self,
-        title: str,
-        subtitle: str,
-        *,
-        control_widget=None,
-        control_layout: QHBoxLayout | None = None,
-    ) -> QHBoxLayout:
-        """Строит одну строку настроек: заголовок + описание + контрол справа."""
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
-        row.setSpacing(12)
-
-        left = QVBoxLayout()
-        left.setContentsMargins(0, 0, 0, 0)
-        left.setSpacing(2)
-        t = QLabel(title, self)
-        t.setStyleSheet("font-weight: 800;")
-        s = QLabel(subtitle, self)
-        # s.setStyleSheet("color: rgba(255,255,255,);")
-        s.setWordWrap(True)
-        left.addWidget(t)
-        left.addWidget(s)
-
-        row.addLayout(left, 1)
-        row.addStretch(0)
-
-        if control_layout is not None:
-            row.addLayout(control_layout, 0)
-        elif control_widget is not None:
-            row.addWidget(control_widget, 0, Qt.AlignRight | Qt.AlignVCenter)
-        return row
 
     def _accent_control(self) -> QHBoxLayout:
         """Возвращает layout с кнопкой выбора цвета и кругом-превью."""
@@ -133,9 +94,7 @@ class SettingsDialog(OverlayDialog):
         self._accent_preview.setStyleSheet(
             f"""
             QPushButton#AccentPreview {{
-                border-radius: 14px;
                 background: {hex_color};
-                border: 2px solid rgba(255,255,255,0.12);
             }}
             """
         )
@@ -143,7 +102,7 @@ class SettingsDialog(OverlayDialog):
     def _pick_accent(self) -> None:
         """Открывает цветовой диалог и обновляет текущий акцентный цвет."""
         c = QColorDialog.getColor(QColor(self._settings.accent_color), self, "Акцентный цвет")
-        print(c.name())
+        #print(c.name())
         if not c.isValid():
             return
         self._settings = Settings(
@@ -161,4 +120,7 @@ class SettingsDialog(OverlayDialog):
             theme=theme,
             font_family=self._font.currentText(),
         )
+    def apply_theme_tokens(self, tokens: ThemeTokens) -> None:
+        self._pin_hover.set_tokens(tokens)
+        self._theme_hover.set_tokens(tokens)
 
