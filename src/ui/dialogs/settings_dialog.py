@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QComboBox, QColorDialog, QFrame, QHBoxLayout, QLab
 
 from src.core.models import Settings
 from src.ui.widgets.overlay_dialog import OverlayDialog
-from src.utils.utils import DialogHelperMixin
+from src.utils.dialog import DialogHelperMixin
 
 class SettingsDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Настройки» поверх главного окна."""

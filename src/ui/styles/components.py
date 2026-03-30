@@ -19,7 +19,7 @@ def components_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
         }}
 
         QWidget#Header {{ /* Верхняя часть у главного экрана (HEADER)  */
-            background-color: {der_tokens};
+            background-color: {der_tokens.primary_bg};
             border-radius: 12px;
             border: 1px solid {tokens.border};
         }}

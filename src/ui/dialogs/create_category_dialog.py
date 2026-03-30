@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QSizePolicy
 )
 
-from src.utils.utils import DialogHelperMixin
+from src.utils.dialog import DialogHelperMixin
 from src.ui.widgets.overlay_dialog import OverlayDialog
 
 
@@ -34,6 +34,7 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
+        self._name.setFixedWidth(150)
 
         self._accent_btn = QPushButton("Выбрать цвет", self)
         self._accent_btn.setCursor(Qt.PointingHandCursor)

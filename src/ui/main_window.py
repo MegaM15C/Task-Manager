@@ -153,7 +153,7 @@ class MainWindow(QMainWindow):
 
         # Заголовок вида
         self._view_title = QLabel("Все задачи", header_widget)
-        self._view_title.setObjectName("ViewTitle")
+        self._view_title.setObjectName("ViewTitleHeader")
         self._view_icon.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         header_layout.addWidget(self._view_title)
 

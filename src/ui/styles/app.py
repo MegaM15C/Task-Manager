@@ -15,8 +15,6 @@ from src.ui.styles.labels import labels_qss
 from src.ui.styles.buttons import buttons_qss, tool_buttons_qss
 from src.ui.styles.components import components_qss
 
-
-
 def app_qss(tokens: ThemeTokens) -> str:
     primary_bg = QColor(tokens.accent).darker(120).name()
     primary_text = contrast_text_color(primary_bg)

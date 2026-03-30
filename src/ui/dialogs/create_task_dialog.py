@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QCheckBox, QComboBox, QDateEdit, QLineEdit, QPushB
 
 from src.core.models import Category, Task
 from src.ui.widgets.overlay_dialog import OverlayDialog
-from src.utils.utils import DialogHelperMixin
+from src.utils.dialog import DialogHelperMixin
 
 
 class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
@@ -24,7 +24,8 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
-
+        self._name.setFixedWidth(150)
+        
         self._cat = QComboBox(self)
         self._cat.addItem("Без категории", userData=None)
         for c in categories:

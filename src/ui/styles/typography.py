@@ -15,6 +15,7 @@ def typography_qss(tokens: ThemeTokens) -> str:
         f"""
             QLabel {{
                 background: transparent;
+                font-weight: 400;
             }}
         """
     )

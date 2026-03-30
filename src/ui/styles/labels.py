@@ -42,7 +42,7 @@ def labels_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
                 border-radius: 8px;
             }}
 
-            QLabel#ViewTitle {{ /* "Отображение названия категории" */
+            QLabel#ViewTitleHeader {{ /* "Отображение названия категории" */
                 font-size: 18px;
                 font-weight: 900;
                 color: {der_tokens.accent_text};
