@@ -4,7 +4,18 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QComboBox, QColorDialog, QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
+from PySide6.QtWidgets import (
+    QComboBox,
+    QColorDialog,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+)
+
+from typing import Callable, Optional
 
 from src.core.models import Settings
 from src.ui.widgets.overlay_dialog import OverlayDialog
@@ -13,10 +24,19 @@ from src.utils.dialog import DialogHelperMixin
 class SettingsDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Настройки» поверх главного окна."""
 
-    def __init__(self, parent, settings: Settings) -> None:
+    def __init__(
+        self,
+        parent,
+        settings: Settings,
+        *,
+        on_export: Optional[Callable[[str], None]] = None,
+        on_import: Optional[Callable[[str], bool]] = None,
+    ) -> None:
         """Инициализирует элементы управления на основе текущих настроек."""
         super().__init__(parent, title="Настройки")
         self._settings = settings
+        self._on_export = on_export
+        self._on_import = on_import
 
         self._accent_btn = QPushButton("Выбрать цвет", self)
         self._accent_btn.setCursor(Qt.PointingHandCursor)
@@ -59,6 +79,26 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
                 "Основной шрифт",
                 "Выбор основного шрифта интерфейса и текста в Активa",
                 control_widget=self._font,
+            )
+        )
+
+        self.body.addWidget(self._divider())
+
+        self._export_btn = QPushButton("Экспорт…", self)
+        self._export_btn.setCursor(Qt.PointingHandCursor)
+        self._export_btn.clicked.connect(self._export_clicked)
+        self._export_btn.setEnabled(self._on_export is not None)
+
+        self._import_btn = QPushButton("Импорт…", self)
+        self._import_btn.setCursor(Qt.PointingHandCursor)
+        self._import_btn.clicked.connect(self._import_clicked)
+        self._import_btn.setEnabled(self._on_import is not None)
+
+        self.body.addLayout(
+            self._row(
+                "Экспорт и импорт",
+                "Сохранение и восстановление всех настроек и задач из файла",
+                control_layout=self._export_import_controls(),
             )
         )
 
@@ -120,7 +160,42 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
             theme=theme,
             font_family=self._font.currentText(),
         )
-    def apply_theme_tokens(self, tokens: ThemeTokens) -> None:
-        self._pin_hover.set_tokens(tokens)
-        self._theme_hover.set_tokens(tokens)
+
+    def _export_import_controls(self) -> QHBoxLayout:
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(10)
+        h.addWidget(self._export_btn)
+        h.addWidget(self._import_btn)
+        return h
+
+    def _export_clicked(self) -> None:
+        if self._on_export is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Экспорт данных",
+            "task_manager_backup.zip",
+            "Backup (*.zip)",
+        )
+        if not path:
+            return
+        self._on_export(path)
+
+    def _import_clicked(self) -> None:
+        if self._on_import is None:
+            return
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Импорт данных",
+            "",
+            "Backup (*.zip)",
+        )
+        if not path:
+            return
+        ok = self._on_import(path)
+        # Если импорт успешен, закрываем диалог, чтобы пользователь не мог
+        # "пересохранить" старые значения поверх импортированных.
+        if ok:
+            self.reject()
 

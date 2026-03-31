@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from PySide6.QtCore import QEasingCurve, QEvent, QObject, QPropertyAnimation, Qt, QTimer
 from PySide6.QtGui import QCursor, QPixmap, QIcon
+from pathlib import Path
 from PySide6.QtWidgets import (
     QDialog,
     QFrame,
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
 from src.core.models import Category, Settings, Task
 from src.core.paths import AppPaths
 from src.core.repositories import CategoriesRepository, SettingsRepository, TasksRepository
+from src.core.backup import BackupError, export_all, import_all
 from src.ui.dialogs.create_category_dialog import CreateCategoryDialog
 from src.ui.dialogs.create_task_dialog import CreateTaskDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
@@ -31,6 +33,7 @@ from src.ui.styles.app import app_qss, font_from_settings
 from src.ui.widgets.sidebar import Sidebar
 from src.ui.widgets.task_item import TaskItemWidget
 from src.utils.buttons import HoverEffect
+from src.utils.icons import icons
 
 from PySide6.QtCore import QPropertyAnimation, QEasingCurve
 
@@ -145,7 +148,7 @@ class MainWindow(QMainWindow):
         self._view_icon = QLabel("", self)
         self._view_icon.setFixedWidth(30)
         self._view_icon.setFixedHeight(30)
-        self._icon_header = QPixmap('resources/icons/all_tasks.png')
+        self._icon_header = QPixmap(icons['all_tasks'])
         self._view_icon.setPixmap(self._icon_header)
         self._view_icon.setStyleSheet("font-size: 30px;")
         self._view_icon.setScaledContents(True)
@@ -252,10 +255,10 @@ class MainWindow(QMainWindow):
         self.sidebar.pin_btn.setText("")
         self.sidebar.pin_btn.setIcon(QPixmap()) 
         if checked:
-            self.sidebar.pin_btn.setIcon(QPixmap("resources/icons/collapse.png")) 
+            self.sidebar.pin_btn.setIcon(QPixmap(icons['collapse_sidebar'])) 
             self._show_sidebar()
         else:
-            self.sidebar.pin_btn.setIcon(QPixmap("resources/icons/expand.png")) 
+            self.sidebar.pin_btn.setIcon(QPixmap(icons['expand_sidebar'])) 
             self._hide_sidebar()
 
     def _apply_settings(self) -> None:
@@ -295,11 +298,51 @@ class MainWindow(QMainWindow):
 
     def _open_settings(self) -> None:
         """Открывает диалог настроек и сохраняет новые значения при подтверждении."""
-        dlg = SettingsDialog(self, self._settings)
+        dlg = SettingsDialog(
+            self,
+            self._settings,
+            on_export=self._export_backup,
+            on_import=self._import_backup,
+        )
         if dlg.exec() == QDialog.Accepted:
             self._settings = dlg.result_settings()
             self._settings_repo.save(self._settings)
             self._apply_settings()
+
+    def _export_backup(self, dest_path: str) -> None:
+        try:
+            export_all(self._paths, Path(dest_path))
+        except Exception as e:
+            QMessageBox.critical(self, "Экспорт", f"Не удалось экспортировать данные.\n\n{e}")
+            return
+        QMessageBox.information(self, "Экспорт", "Экспорт успешно завершён.")
+
+    def _import_backup(self, src_path: str) -> None:
+        result = QMessageBox.question(
+            self,
+            "Импорт",
+            "Импорт заменит текущие настройки, категории и задачи. Продолжить?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if result != QMessageBox.StandardButton.Yes:
+            return False
+        try:
+            import_all(self._paths, Path(src_path))
+        except BackupError as e:
+            QMessageBox.critical(self, "Импорт", f"Не удалось импортировать данные.\n\n{e}")
+            return False
+        except Exception as e:
+            QMessageBox.critical(self, "Импорт", f"Не удалось импортировать данные.\n\n{e}")
+            return False
+
+        # Reload everything and refresh UI
+        self._settings = self._settings_repo.load()
+        self._apply_settings()
+        self._reload_sidebar()
+        self._reset_and_load_first_page()
+        QMessageBox.information(self, "Импорт", "Импорт успешно завершён.")
+        return True
 
     def _on_theme_toggled(self, dark: bool) -> None:
         """Обрабатывает переключатель темы в сайдбаре (light/dark)."""
@@ -349,22 +392,22 @@ class MainWindow(QMainWindow):
         self._view_icon.setText("")
 
         if key == "all":
-            self._view_icon.setPixmap(QPixmap('resources/icons/all_tasks.png'))
+            self._view_icon.setPixmap(QPixmap(icons['all_tasks']))
             self._view_title.setText("Все задачи")
 
         elif key == "deadlines":
-            pixmap = QPixmap('resources/icons/deadline.png')
+            pixmap = QPixmap(icons['deadlines'])
             #print(pixmap.isNull())  # диагностика если нужно
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Дедлайны")
 
         elif key == "important":
-            pixmap = QPixmap('resources/icons/important.png')            
+            pixmap = QPixmap(icons['important'])            
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Важное")
 
         elif key == "done":
-            pixmap = QPixmap('resources/icons/completed_task.png')            
+            pixmap = QPixmap(icons['completed_tasks'])            
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Выполненные")
 

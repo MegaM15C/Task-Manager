@@ -22,7 +22,18 @@ def buttons_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
         QPushButton:hover {{
             background: {tokens.surface};
         }}
-        
+        QPushButton#NavButton {{ /* Все кнопки */
+            background: {tokens.surface_2};
+            border: 1px solid {tokens.border};
+            border-radius: 10px;
+            padding: 8px 8px;
+            text-align: left;
+            font-size: 16px;
+            font-weight: 700;
+        }}
+        QPushButton#NavButton:hover {{
+            background: {tokens.surface};
+        }}
         QPushButton#PrimaryButton {{ /* Кнопка добавления задачи */
             background: {tokens.accent};
             border: 0.6px solid {tokens.border};

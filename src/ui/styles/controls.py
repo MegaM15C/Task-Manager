@@ -9,7 +9,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtGui import QColor
 from src.core.models import Settings
 from src.theme.theme import ThemeTokens, DerivedTokens
-
+from src.utils.icons import icons
 
 def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
     return (
@@ -30,7 +30,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
         QCheckBox#ImportantCheckBox::indicator:checked {{
             background: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
-            image: url(resources/icons/check.png);
+            image: url({icons['check']});
             border-radius: 4px;
         }}
 
@@ -47,7 +47,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             background-color: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
             border-radius: 4px;
-            image: url(resources/icons/check.png); 
+            image: url({icons['check']}); 
         }}
 
         QLineEdit, QComboBox, QDateEdit {{

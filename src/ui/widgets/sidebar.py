@@ -14,12 +14,13 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSize
 from PySide6.QtGui import QPixmap
 from src.core.models import Category
 from src.utils.buttons import HoverEffect
 from src.ui.styles.app import ThemeTokens
 
+from src.utils.icons import icons
 from src.core.paths import AppPaths
 from src.core.repositories import SettingsRepository
 
@@ -89,7 +90,7 @@ class Sidebar(QFrame):
         self.pin_btn =QToolButton(self)
         self._pin_hover = HoverEffect(self.pin_btn, tokens=tokens)
         self.pin_btn.setCheckable(True)
-        self.pin_btn.setIcon(QPixmap('resources/icons/expand.png'))
+        self.pin_btn.setIcon(QPixmap(icons['expand_sidebar']))
         self.pin_btn.setToolTip("Закрепить сайдбар")
         self.pin_btn.setObjectName("PinButton")
         self.pin_btn.setStyleSheet("""
@@ -103,23 +104,28 @@ class Sidebar(QFrame):
         root.addLayout(top)
 
         self._nav_all = QPushButton("Все задачи", self)
-        self._nav_all.setIcon(QPixmap('resources/icons/all_tasks.png'))
+        self._nav_all.setIcon(QPixmap(icons['all_tasks']))
+        self._nav_all.setIconSize(QSize(25, 25))
+        # self._nav_all.set
         self._nav_all_hover = HoverEffect(self._nav_all, tokens=tokens)
 
         self._nav_deadlines = QPushButton("Дедлайны", self)
-        self._nav_deadlines.setIcon(QPixmap('resources/icons/deadline.png'))
+        self._nav_deadlines.setIcon(QPixmap(icons['deadlines']))
         self._nav_deadlines_hover = HoverEffect(self._nav_deadlines, tokens=tokens)
         
         self._nav_important = QPushButton("Важное", self)
-        self._nav_important.setIcon(QPixmap('resources/icons/important.png'))
+        self._nav_important.setIcon(QPixmap(icons['important']))
         self._nav_important_hover = HoverEffect(self._nav_important, tokens=tokens)
 
         self._nav_done = QPushButton("Выполненные", self)
-        self._nav_done.setIcon(QPixmap('resources/icons/completed_task.png'))
+        # self._nav_done.set
+        self._nav_done.setIcon(QPixmap(icons['completed_tasks']))
         self._nav_done_hover = HoverEffect(self._nav_done, tokens=tokens)
-        
+
         for b in (self._nav_all, self._nav_deadlines, self._nav_important, self._nav_done):
             b.setObjectName("NavButton")
+            b.setIconSize(QSize(25, 25))
+            b.setText("    " + b.text())
             b.setCursor(Qt.PointingHandCursor)
 
         self._nav_all.clicked.connect(lambda: self.view_selected.emit("all"))
@@ -170,11 +176,11 @@ class Sidebar(QFrame):
         settings = SettingsRepository(self._paths).load()
         if settings.theme == 'light':
             self._theme_btn.setIcon(
-                QPixmap("resources/icons/light_theme_indicator.png")
+                QPixmap(icons['light_theme_indicator'])
             )
         else:
             self._theme_btn.setIcon(
-                QPixmap("resources/icons/dark_theme_indicator.png")
+                QPixmap(icons['dark_theme_indicator'])
             )
         self._theme_btn.setToolTip("Переключить тему")
         self._theme_btn.setObjectName("ThemeButton")
@@ -186,7 +192,7 @@ class Sidebar(QFrame):
 
         self.gear = QToolButton(self)
         self._gear_hover = HoverEffect(self.gear, tokens=tokens)
-        self.gear.setIcon(QPixmap("resources/icons/settings.png"))
+        self.gear.setIcon(QPixmap(icons['settings']))
         self.gear.setToolTip("Настройки")
         self.gear.setObjectName("SettingsButton")
         self.gear.setFixedSize(42, 34)
@@ -204,11 +210,11 @@ class Sidebar(QFrame):
         self._theme_btn.setIcon(QPixmap())
         if dark:
             self._theme_btn.setIcon(
-                QPixmap("resources/icons/dark_theme_indicator.png")
+                QPixmap(icons['dark_theme_indicator'])
             )
         else:
             self._theme_btn.setIcon(
-                QPixmap("resources/icons/light_theme_indicator.png")
+                QPixmap(icons['light_theme_indicator'])
             )
 
         # self._theme_btn.setText("🌙" if dark else "☀")

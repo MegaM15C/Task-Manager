@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.utils.icons import icons
 from src.core.models import Category, Task
 from src.core.paths import AppPaths
 
@@ -164,7 +165,7 @@ class TaskItemWidget(QFrame):
 
         self._important = QLabel("", self)
         self._important_icon = QPixmap(
-            "resources/icons/important_mask.png" if task.important else ""
+            icons['important_mask'] if task.important else ""
         )
         self._important.setPixmap(self._important_icon)
         self._important.setScaledContents(True)
