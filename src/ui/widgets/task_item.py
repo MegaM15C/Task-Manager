@@ -6,8 +6,8 @@ from datetime import date
 from typing import Optional
 
 
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QBrush
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QBrush, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (
 from src.utils.icons import icons
 from src.core.models import Category, Task
 from src.core.paths import AppPaths
+
+PILL_HEIGHT = 24
 
 
 def _human_due(d: Optional[date]) -> str:
@@ -55,6 +57,7 @@ class CategoryPill(QFrame):
             border-radius: 16px;
             """)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        self.setFixedHeight(PILL_HEIGHT)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 4, 10, 4)
@@ -164,26 +167,47 @@ class TaskItemWidget(QFrame):
         self._title.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout.addWidget(self._title, 1, Qt.AlignVCenter)
 
-        self._important = QLabel("", self)
-        self._important_icon = QPixmap(
-            icons["important_mask"] if task.important else ""
-        )
-        self._important.setPixmap(self._important_icon)
-        self._important.setScaledContents(True)
-        self._important.setObjectName("TaskImportant")
-        self._important.setFixedWidth(20)
-        self._important.setFixedHeight(20)
-        self._important.setAlignment(Qt.AlignCenter)
+        self._important: QWidget
+        if task.important:
+            self._important = QFrame(self)
+            self._important.setObjectName("TaskImportant")
+            self._important.setFixedHeight(PILL_HEIGHT)
+            self._important.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+
+            important_layout = QHBoxLayout(self._important)
+            important_layout.setContentsMargins(8, 4, 8, 4)
+            important_layout.setSpacing(5)
+
+            important_icon = QLabel(self._important)
+            important_icon.setFixedSize(14, 14)
+            important_icon.setScaledContents(True)
+            important_icon.setPixmap(QPixmap(icons["important_mask"]))
+            important_layout.addWidget(important_icon)
+
+            important_text = QLabel("Важная", self._important)
+            important_text.setObjectName("TaskImportantText")
+            important_layout.addWidget(important_text)
+        else:
+            self._important = QLabel("", self)
+            self._important.setFixedWidth(1)
         layout.addWidget(self._important, 0, Qt.AlignVCenter)
 
-        self._priority = QLabel(self)
+        self._priority = QFrame(self)
         self._priority.setObjectName("TaskPriority")
-        self._priority.setFixedWidth(34)
-        self._priority.setAlignment(Qt.AlignCenter)
+        self._priority.setFixedHeight(PILL_HEIGHT)
+        self._priority.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         self._priority.setProperty("priority", int(task.priority))
+
+        priority_layout = QHBoxLayout(self._priority)
+        priority_layout.setContentsMargins(10, 4, 10, 4)
+        priority_layout.setSpacing(0)
+        priority_text = QLabel(f"П{max(0, int(task.priority))}", self._priority)
+        priority_text.setObjectName("TaskPriorityText")
+        priority_text.setAlignment(Qt.AlignCenter)
+        priority_layout.addWidget(priority_text)
+
         self._priority.style().unpolish(self._priority)
         self._priority.style().polish(self._priority)
-        self._priority.setText(f"П{max(0, int(task.priority))}")
         layout.addWidget(self._priority, 0, Qt.AlignVCenter)
 
         self._pill: QWidget
@@ -210,10 +234,6 @@ class TaskItemWidget(QFrame):
         self._menu.setStyleSheet(
             "QPushButton#MenuButton { border-radius: 10px; padding: 0px; font-size: 18px; }"
         )
-        self._priority.setStyleSheet(
-            "QLabel#TaskPriority { font-weight: 800; opacity: 0.8; }"
-        )
-        self._important.setStyleSheet("QLabel#TaskImportant { font-size: 14px; }")
 
     def _on_done_changed(self) -> None:
         """Излучает сигнал при изменении чекбокса выполнения задачи."""

@@ -4,10 +4,20 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
-from PySide6.QtCore import QEasingCurve, QEvent, QObject, QPropertyAnimation, Qt, QTimer
-from PySide6.QtGui import QCursor, QPixmap, QIcon
 from pathlib import Path
+
+from PySide6.QtCore import (
+    QEasingCurve,
+    QEvent,
+    QObject,
+    QPropertyAnimation,
+    QRectF,
+    Qt,
+    QTimer,
+)
+from PySide6.QtGui import QColor, QCursor, QPainter, QPainterPath, QPixmap
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QFrame,
     QHBoxLayout,
@@ -16,7 +26,6 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
-    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -35,35 +44,13 @@ from src.ui.dialogs.settings_dialog import SettingsDialog
 from src.theme.theme import tokens_from_settings
 from src.ui.styles.app import app_qss, font_from_settings
 from src.ui.widgets.sidebar import Sidebar
+from src.ui.widgets.smooth_scroll import SmoothScrollArea
 from src.ui.widgets.task_item import TaskItemWidget
 from src.utils.buttons import HoverEffect
 from src.utils.icons import icons
 
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve
-
-
-class SmoothScrollArea(QScrollArea):
-    def __init__(self):
-        super().__init__()
-
-        self._anim = QPropertyAnimation(self.verticalScrollBar(), b"value")
-        self._anim.setDuration(400)
-        self._anim.setEasingCurve(QEasingCurve.OutCubic)
-
-    def wheelEvent(self, event):
-        sb = self.verticalScrollBar()
-
-        delta = event.angleDelta().y()
-
-        # целевая позиция
-        new_value = sb.value() - delta
-
-        new_value = max(sb.minimum(), min(sb.maximum(), new_value))
-
-        self._anim.stop()
-        self._anim.setStartValue(sb.value())
-        self._anim.setEndValue(new_value)
-        self._anim.start()
+HEADER_ICON_SIZE = 30
+CATEGORY_PLACEHOLDER_ICON = Path("resources/icons/category_placeholder.png")
 
 
 class MainWindow(QMainWindow):
@@ -153,8 +140,9 @@ class MainWindow(QMainWindow):
 
         # Иконка вида
         self._view_icon = QLabel("", self)
-        self._view_icon.setFixedWidth(30)
-        self._view_icon.setFixedHeight(30)
+        self._view_icon.setFixedWidth(HEADER_ICON_SIZE)
+        self._view_icon.setFixedHeight(HEADER_ICON_SIZE)
+        self._view_icon.setObjectName("HeaderCategoryIcon")
         self._icon_header = QPixmap(icons["all_tasks"])
         self._view_icon.setPixmap(self._icon_header)
         self._view_icon.setStyleSheet("font-size: 30px;")
@@ -217,9 +205,6 @@ class MainWindow(QMainWindow):
         root.setMouseTracking(True)
         self._main.setMouseTracking(True)
         self._scroll.viewport().setMouseTracking(True)
-        # Use QApplication.instance() without importing at top to keep imports lean.
-        from PySide6.QtWidgets import QApplication
-
         QApplication.instance().installEventFilter(self)
 
         self._pinned = False
@@ -275,9 +260,15 @@ class MainWindow(QMainWindow):
     def _apply_settings(self) -> None:
         """Применяет текущие настройки темы/шрифта ко всему окну."""
         self._tokens = tokens_from_settings(self._settings)
+        font = font_from_settings(self._settings)
+        app = QApplication.instance()
+        if app is not None:
+            app.setFont(font)
+            for widget in app.allWidgets():
+                widget.setFont(font)
         self.setStyleSheet(app_qss(self._tokens))
         self.sidebar.apply_theme_tokens(self._tokens)
-        self.setFont(font_from_settings(self._settings))
+        self.setFont(font)
         self.hover_add_task.set_tokens(self._tokens)
         self.sidebar.set_theme_checked(dark=self._settings.theme == "dark")
 
@@ -431,10 +422,57 @@ class MainWindow(QMainWindow):
         elif key.startswith("category:"):
             cid = key.split(":", 1)[1]
             c = next((x for x in self._categories if x.id == cid), None)
-            self._view_icon.setText("🏷")
+            self._view_icon.setPixmap(self._category_header_icon(c))
             self._view_title.setText(c.name if c else "Категория")
 
         self._reset_and_load_first_page()
+
+    def _category_header_icon(self, category: Category | None) -> QPixmap:
+        if category is not None and category.icon_filename:
+            icon_path = self._paths.icons_dir / category.icon_filename
+            pixmap = QPixmap(str(icon_path))
+            if not pixmap.isNull():
+                return self._rounded_header_pixmap(pixmap)
+
+        placeholder = QPixmap(str(CATEGORY_PLACEHOLDER_ICON))
+        if not placeholder.isNull():
+            return self._rounded_header_pixmap(placeholder)
+
+        pixmap = QPixmap(HEADER_ICON_SIZE, HEADER_ICON_SIZE)
+        pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(category.color if category is not None else "#6D5EF6"))
+        painter.drawRoundedRect(2, 2, HEADER_ICON_SIZE - 4, HEADER_ICON_SIZE - 4, 7, 7)
+        painter.end()
+
+        return pixmap
+
+    def _rounded_header_pixmap(self, source: QPixmap) -> QPixmap:
+        size = HEADER_ICON_SIZE
+        result = QPixmap(size, size)
+        result.fill(Qt.GlobalColor.transparent)
+
+        scaled = source.scaled(
+            size,
+            size,
+            Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        x = (size - scaled.width()) // 2
+        y = (size - scaled.height()) // 2
+
+        painter = QPainter(result)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        clip_path = QPainterPath()
+        clip_path.addRoundedRect(QRectF(0, 0, size, size), 7, 7)
+        painter.setClipPath(clip_path)
+        painter.drawPixmap(x, y, scaled)
+        painter.end()
+
+        return result
 
     def _view_sort_key(self, t: Task) -> tuple:
         # Completed view: newest completed first

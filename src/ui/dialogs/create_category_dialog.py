@@ -8,15 +8,13 @@ from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QColorDialog,
     QFileDialog,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
-    QColorDialog,
-    QFrame,
-    QVBoxLayout,
-    QSizePolicy,
 )
 
 from src.utils.dialog import DialogHelperMixin
@@ -34,6 +32,7 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
+        self._name.setMaxLength(24)
         self._name.setFixedWidth(150)
 
         self._accent_btn = QPushButton("Выбрать цвет", self)
@@ -100,6 +99,22 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addWidget(cancel)
         self.footer.addWidget(create)
 
+    def accept(self) -> None:  # type: ignore[override]
+        name = self._name.text().strip()
+        if not name:
+            QMessageBox.warning(self, "Проверка данных", "Введите название категории.")
+            self._name.setFocus()
+            return
+        if len(name) > 24:
+            QMessageBox.warning(
+                self,
+                "Проверка данных",
+                "Название категории не должно быть длиннее 24 символов.",
+            )
+            self._name.setFocus()
+            return
+        super().accept()
+
     def _accent_control(self) -> QHBoxLayout:
         """Возвращает layout с кнопкой выбора цвета и кругом-превью."""
         h = QHBoxLayout()
@@ -111,11 +126,13 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
 
     def _set_color_preview(self) -> None:
         """Обновляет внешний вид круглой кнопки-превью акцентного цвета."""
-        self._accent_preview.setStyleSheet(f"""
+        self._accent_preview.setStyleSheet(
+            f"""
             QPushButton {{
                 background: {self._color};
             }}
-            """)
+            """
+        )
 
     def _pick_color(self) -> None:
         """Открывает цветовой диалог для выбора цвета категории."""

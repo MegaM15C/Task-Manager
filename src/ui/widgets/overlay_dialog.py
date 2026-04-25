@@ -23,7 +23,7 @@ class OverlayDialog(QDialog):
 
         # === Окно диалога ===
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
-        self.setModal(True)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
 
         # === Оверлей (затемнение) ===
         self._overlay = QWidget(parent)
@@ -130,9 +130,10 @@ class OverlayDialog(QDialog):
             return
 
         self.adjustSize()
-        x = (p.width() - self.width()) // 2
-        y = (p.height() - self.height()) // 2
-        self.move(max(0, x), max(0, y))
+        parent_top_left = p.mapToGlobal(p.rect().topLeft())
+        x = parent_top_left.x() + (p.width() - self.width()) // 2
+        y = parent_top_left.y() + (p.height() - self.height()) // 2
+        self.move(x, y)
 
     def mousePressEvent(self, event):
         """Закрытие при клике вне карточки."""

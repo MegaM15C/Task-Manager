@@ -2,51 +2,26 @@ from __future__ import annotations
 
 """Левый сайдбар с навигацией по видам и категориям задач."""
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QMenu,
     QPushButton,
-    QScrollArea,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSize
-from PySide6.QtGui import QPixmap
-from src.core.models import Category
-from src.utils.buttons import HoverEffect
-from src.ui.styles.app import ThemeTokens
 
-from src.utils.icons import icons
+from src.core.models import Category
 from src.core.paths import AppPaths
 from src.core.repositories import SettingsRepository
-
-
-class SmoothScrollArea(QScrollArea):
-    def __init__(self):
-        super().__init__()
-
-        self._anim = QPropertyAnimation(self.verticalScrollBar(), b"value")
-        self._anim.setDuration(400)
-        self._anim.setEasingCurve(QEasingCurve.OutCubic)
-
-    def wheelEvent(self, event):
-        sb = self.verticalScrollBar()
-
-        delta = event.angleDelta().y()
-
-        # целевая позиция
-        new_value = sb.value() - delta
-
-        new_value = max(sb.minimum(), min(sb.maximum(), new_value))
-
-        self._anim.stop()
-        self._anim.setStartValue(sb.value())
-        self._anim.setEndValue(new_value)
-        self._anim.start()
+from src.ui.styles.app import ThemeTokens
+from src.ui.widgets.smooth_scroll import SmoothScrollArea
+from src.utils.buttons import HoverEffect
+from src.utils.icons import icons
 
 
 class Sidebar(QFrame):

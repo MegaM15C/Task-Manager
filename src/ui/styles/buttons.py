@@ -73,7 +73,7 @@ def tool_buttons_qss(tokens: ThemeTokens) -> str:
     return f"""
         QToolButton#PinButton:hover, QToolButton#ThemeButton:hover, QToolButton#SettingsButton:hover {{
             background-color: rgba(0, 0, 0, 30);  /* слегка темнеет */
-            border-radius: 8px;                   /* скругление если нужно */
+            border-radius: 8px;
         }}
         QToolButton#PinButton, QToolButton#ThemeButton, QToolButton#SettingsButton {{
             background: {tokens.surface_2};

@@ -28,6 +28,13 @@ def components_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             border: 1px solid {tokens.border};
             border-radius: 14px;
         }}
+        
+        QFrame#CategoryPill {{
+            /* Плашка категории (category pill) */
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            border: 1px solid {tokens.border};
+        }}
 
         QFrame#Sidebar {{ /* Сайдбар (Sidebar) */
             background: {tokens.surface};

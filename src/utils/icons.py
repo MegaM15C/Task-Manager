@@ -19,4 +19,5 @@ icons = {
     # Прочие иконки
     "check": icons_dir / "check.png",
     "important_mask": icons_dir / "important_mask.png",
+    "arrow_down": icons_dir / "arrow_down.png",
 }

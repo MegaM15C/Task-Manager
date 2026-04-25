@@ -6,7 +6,15 @@ from datetime import date
 from typing import Optional
 
 from PySide6.QtCore import QDate
-from PySide6.QtWidgets import QCheckBox, QComboBox, QDateEdit, QLineEdit, QPushButton
+from PySide6.QtWidgets import (
+    QCalendarWidget,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+)
 
 from src.core.models import Category, Task
 from src.ui.widgets.overlay_dialog import OverlayDialog
@@ -28,6 +36,7 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
+        self._name.setMaxLength(48)
         self._name.setFixedWidth(150)
 
         self._cat = QComboBox(self)
@@ -36,9 +45,17 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
             self._cat.addItem(c.name, userData=c.id)
 
         self._due = QDateEdit(self)
+        today = QDate.currentDate()
+        calendar = QCalendarWidget(self)
+        calendar.setMinimumDate(today)
+        calendar.setGridVisible(False)
+        calendar.setFixedSize(320, 240)
         self._due.setCalendarPopup(True)
+        self._due.setCalendarWidget(calendar)
+        self._due.setMinimumDate(today)
         self._due.setDisplayFormat("dd.MM.yyyy")
-        self._due.setDate(QDate.currentDate())
+        self._due.setDate(today)
+        self._due.setFixedWidth(150)
 
         self._priority = QComboBox(self)
         # Higher number => higher priority
@@ -55,19 +72,10 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
 
         if task is not None:
             self._name.setText(task.title)
-            if task.category_id is None:
-                self._cat.setCurrentIndex(0)
-            else:
-                for i in range(self._cat.count()):
-                    if self._cat.itemData(i) == task.category_id:
-                        self._cat.setCurrentIndex(i)
-                        break
+            self._set_combo_to_data(self._cat, task.category_id)
             if task.due is not None:
                 self._due.setDate(QDate(task.due.year, task.due.month, task.due.day))
-            for i in range(self._priority.count()):
-                if int(self._priority.itemData(i) or 0) == int(task.priority):
-                    self._priority.setCurrentIndex(i)
-                    break
+            self._set_combo_to_data(self._priority, int(task.priority))
             self._important.setChecked(bool(task.important))
 
         self.body.addLayout(
@@ -119,6 +127,38 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addStretch(1)
         self.footer.addWidget(cancel)
         self.footer.addWidget(create)
+
+    def accept(self) -> None:  # type: ignore[override]
+        title = self._name.text().strip()
+        if not title:
+            QMessageBox.warning(self, "Проверка данных", "Введите название задачи.")
+            self._name.setFocus()
+            return
+        if len(title) > 48:
+            QMessageBox.warning(
+                self,
+                "Проверка данных",
+                "Название задачи не должно быть длиннее 48 символов.",
+            )
+            self._name.setFocus()
+            return
+        if self._due.date() < QDate.currentDate():
+            QMessageBox.warning(
+                self,
+                "Проверка данных",
+                "Дедлайн не может быть раньше сегодняшней даты.",
+            )
+            self._due.setDate(QDate.currentDate())
+            self._due.setFocus()
+            return
+        super().accept()
+
+    @staticmethod
+    def _set_combo_to_data(combo: QComboBox, data) -> None:
+        for i in range(combo.count()):
+            if combo.itemData(i) == data:
+                combo.setCurrentIndex(i)
+                return
 
     def result(self) -> tuple[str, Optional[str], Optional[date], int, bool]:
         """Возвращает введённые пользователем данные о задаче."""
