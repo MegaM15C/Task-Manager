@@ -11,8 +11,7 @@ from src.theme.theme import ThemeTokens, DerivedTokens
 
 
 def labels_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
-    return (
-        f""" 
+    return f""" 
             QLabel#TaskPriority {{ /* "Чипс" приоритета */
                 border: 1px solid {tokens.border};
                 border-radius: 8px;
@@ -75,4 +74,3 @@ def labels_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
 
             
         """
-    )

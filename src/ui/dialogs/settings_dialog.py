@@ -21,6 +21,7 @@ from src.core.models import Settings
 from src.ui.widgets.overlay_dialog import OverlayDialog
 from src.utils.dialog import DialogHelperMixin
 
+
 class SettingsDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Настройки» поверх главного окна."""
 
@@ -114,7 +115,6 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addWidget(cancel)
         self.footer.addWidget(self._save)
 
-
     def _accent_control(self) -> QHBoxLayout:
         """Возвращает layout с кнопкой выбора цвета и кругом-превью."""
         h = QHBoxLayout()
@@ -131,18 +131,18 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
 
     def _set_accent_preview(self, hex_color: str) -> None:
         """Обновляет цвет круга-превью для акцентного цвета."""
-        self._accent_preview.setStyleSheet(
-            f"""
+        self._accent_preview.setStyleSheet(f"""
             QPushButton#AccentPreview {{
                 background: {hex_color};
             }}
-            """
-        )
+            """)
 
     def _pick_accent(self) -> None:
         """Открывает цветовой диалог и обновляет текущий акцентный цвет."""
-        c = QColorDialog.getColor(QColor(self._settings.accent_color), self, "Акцентный цвет")
-        #print(c.name())
+        c = QColorDialog.getColor(
+            QColor(self._settings.accent_color), self, "Акцентный цвет"
+        )
+        # print(c.name())
         if not c.isValid():
             return
         self._settings = Settings(
@@ -198,4 +198,3 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         # "пересохранить" старые значения поверх импортированных.
         if ok:
             self.reject()
-

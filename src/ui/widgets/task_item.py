@@ -6,7 +6,7 @@ from datetime import date
 from typing import Optional
 
 
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve 
+from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QBrush
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -43,17 +43,17 @@ def _human_due(d: Optional[date]) -> str:
 class CategoryPill(QFrame):
     """Небольшой виджет-плашка с цветом и иконкой категории."""
 
-    def __init__(self, paths: AppPaths, category: Category, parent: QWidget | None = None) -> None:
+    def __init__(
+        self, paths: AppPaths, category: Category, parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent)
         self._paths = paths
         self._category = category
         self.setObjectName("CategoryPill")
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             background-color: rgba(255,255,255,0.1);
             border-radius: 16px;
-            """
-        )    
+            """)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
 
         layout = QHBoxLayout(self)
@@ -71,7 +71,6 @@ class CategoryPill(QFrame):
 
         self._apply_icon()
         self._apply_style()
-
 
     def _apply_icon(self) -> None:
         """Пробует загрузить и показать иконку категории из директории icons_dir."""
@@ -94,7 +93,7 @@ class CategoryPill(QFrame):
             size,
             size,
             Qt.AspectRatioMode.IgnoreAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
+            Qt.TransformationMode.SmoothTransformation,
         )
 
         # Создаём круг
@@ -106,15 +105,18 @@ class CategoryPill(QFrame):
         painter.drawEllipse(0, 0, size, size)
         painter.end()
 
-        pix.setMask(mask.createMaskFromColor(Qt.GlobalColor.transparent, Qt.MaskMode.MaskInColor))
+        pix.setMask(
+            mask.createMaskFromColor(
+                Qt.GlobalColor.transparent, Qt.MaskMode.MaskInColor
+            )
+        )
 
         self._icon.setPixmap(pix)
         self._icon.show()
 
     def _apply_style(self) -> None:
         """Применяет стили плашки (заливка цветом категории и белый текст)."""
-        self.setStyleSheet(
-            f"""
+        self.setStyleSheet(f"""
             QFrame#CategoryPill {{
                 background: {self._category.color};
                 border-radius: 4px;
@@ -123,8 +125,7 @@ class CategoryPill(QFrame):
                 color: white;
                 font-weight: 600;
             }}
-            """
-        )
+            """)
 
 
 class TaskItemWidget(QFrame):
@@ -152,7 +153,7 @@ class TaskItemWidget(QFrame):
         layout.setSpacing(12)
 
         self._check = QCheckBox(self)
-        self._check.setFixedSize(19,19)
+        self._check.setFixedSize(19, 19)
         self._check.setChecked(task.done)
         self._check.setObjectName("TaskCheckBox")
         self._check.stateChanged.connect(self._on_done_changed)
@@ -165,7 +166,7 @@ class TaskItemWidget(QFrame):
 
         self._important = QLabel("", self)
         self._important_icon = QPixmap(
-            icons['important_mask'] if task.important else ""
+            icons["important_mask"] if task.important else ""
         )
         self._important.setPixmap(self._important_icon)
         self._important.setScaledContents(True)
@@ -212,11 +213,8 @@ class TaskItemWidget(QFrame):
         self._priority.setStyleSheet(
             "QLabel#TaskPriority { font-weight: 800; opacity: 0.8; }"
         )
-        self._important.setStyleSheet(
-            "QLabel#TaskImportant { font-size: 14px; }"
-        )
+        self._important.setStyleSheet("QLabel#TaskImportant { font-size: 14px; }")
 
     def _on_done_changed(self) -> None:
         """Излучает сигнал при изменении чекбокса выполнения задачи."""
         self.toggled_done.emit(self._task.id, self._check.isChecked())
-

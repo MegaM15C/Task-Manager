@@ -1,10 +1,8 @@
 from __future__ import annotations
-
-"""Формирование темы оформления и QSS-стилей для всего приложения."""
-
 from dataclasses import dataclass
 from src.core.models import Settings
 
+"""Формирование темы оформления и QSS-стилей для всего приложения."""
 
 
 @dataclass(frozen=True)
@@ -25,8 +23,8 @@ class ThemeTokens:
 
 @dataclass(frozen=True)
 class DerivedTokens:
-    """Значения, которые передаются вспомогательным генераторам QSS-стилей
-    """
+    """Значения, которые передаются вспомогательным генераторам QSS-стилей"""
+
     primary_bg: str
     primary_text: str
     accent_text: str

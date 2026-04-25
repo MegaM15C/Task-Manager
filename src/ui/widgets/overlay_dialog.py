@@ -49,7 +49,7 @@ class OverlayDialog(QDialog):
         shadow.setColor(Qt.black)
         self._card.setGraphicsEffect(shadow)
 
-        # корневой слой 
+        # корневой слой
         self._root = QVBoxLayout(self)
         self._root.setContentsMargins(0, 0, 0, 0)
         self._root.addWidget(self._card)
@@ -93,7 +93,7 @@ class OverlayDialog(QDialog):
 
         card_layout.addLayout(header)
 
-        # Тело 
+        # Тело
         self.body = QVBoxLayout()
         self.body.setContentsMargins(0, 0, 0, 0)
         self.body.setSpacing(10)

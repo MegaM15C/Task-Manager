@@ -11,11 +11,9 @@ from src.theme.theme import ThemeTokens
 
 
 def typography_qss(tokens: ThemeTokens) -> str:
-    return (
-        f"""
+    return f"""
             QLabel {{
                 background: transparent;
                 font-weight: 400;
             }}
         """
-    )

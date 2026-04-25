@@ -16,16 +16,20 @@ from src.utils.dialog import DialogHelperMixin
 class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Создание задачи» с полями названия, категории и дедлайна."""
 
-    def __init__(self, parent, *, categories: list[Category], task: Task | None = None) -> None:
+    def __init__(
+        self, parent, *, categories: list[Category], task: Task | None = None
+    ) -> None:
         """Наполняет комбобокс категориями и настраивает поля ввода."""
-        super().__init__(parent, title="Создание задачи" if task is None else "Изменение задачи")
+        super().__init__(
+            parent, title="Создание задачи" if task is None else "Изменение задачи"
+        )
         self._categories = categories
         self._task = task
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
         self._name.setFixedWidth(150)
-        
+
         self._cat = QComboBox(self)
         self._cat.addItem("Без категории", userData=None)
         for c in categories:
@@ -45,7 +49,9 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
         self._priority.setCurrentIndex(1)  # default: medium
         self._important = QCheckBox("Важная задача", self)
         self._important.setObjectName("ImportantCheckBox")
-        self._important.setToolTip("Помеченная задача отображается с индикатором важности")
+        self._important.setToolTip(
+            "Помеченная задача отображается с индикатором важности"
+        )
 
         if task is not None:
             self._name.setText(task.title)
@@ -63,20 +69,20 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
                     self._priority.setCurrentIndex(i)
                     break
             self._important.setChecked(bool(task.important))
-        
+
         self.body.addLayout(
             self._row(
                 "Название задачи",
                 "Название должно кратко описывать суть",
-                control_widget=self._name
-                )
+                control_widget=self._name,
+            )
         )
         self.body.addWidget(self._divider())
         self.body.addLayout(
             self._row(
                 "Выбор категории",
                 "Выберите категорию, к которой относится задача",
-                control_widget=self._cat
+                control_widget=self._cat,
             )
         )
         self.body.addWidget(self._divider())
@@ -84,7 +90,7 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
             self._row(
                 "Дата дедлайна",
                 "Поставьте отметку, к какому сроку задача должна быть выполнена",
-                control_widget=self._due
+                control_widget=self._due,
             )
         )
         self.body.addWidget(self._divider())
@@ -114,7 +120,6 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addWidget(cancel)
         self.footer.addWidget(create)
 
-
     def result(self) -> tuple[str, Optional[str], Optional[date], int, bool]:
         """Возвращает введённые пользователем данные о задаче."""
         title = self._name.text().strip()
@@ -124,4 +129,3 @@ class CreateTaskDialog(OverlayDialog, DialogHelperMixin):
         priority = int(self._priority.currentData() or 0)
         important = self._important.isChecked()
         return title, cat_id, due, priority, important
-

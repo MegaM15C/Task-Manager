@@ -11,8 +11,7 @@ from src.theme.theme import ThemeTokens
 
 
 def base_qss(tokens: ThemeTokens):
-    return (
-        f"""
+    return f"""
             QWidget {{
                 background: {tokens.bg};
             }}
@@ -22,4 +21,3 @@ def base_qss(tokens: ThemeTokens):
                 color: {tokens.text};
             }}
         """
-    )

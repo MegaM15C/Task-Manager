@@ -1,5 +1,4 @@
 import sys
-import os
 import platform
 
 from PySide6.QtWidgets import QApplication
@@ -17,6 +16,7 @@ def setup_app(app: QApplication):
 
     if system == "Windows":
         import ctypes
+
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
             "task.manager.app"
         )

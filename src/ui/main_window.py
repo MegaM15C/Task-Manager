@@ -23,7 +23,11 @@ from PySide6.QtWidgets import (
 
 from src.core.models import Category, Settings, Task
 from src.core.paths import AppPaths
-from src.core.repositories import CategoriesRepository, SettingsRepository, TasksRepository
+from src.core.repositories import (
+    CategoriesRepository,
+    SettingsRepository,
+    TasksRepository,
+)
 from src.core.backup import BackupError, export_all, import_all
 from src.ui.dialogs.create_category_dialog import CreateCategoryDialog
 from src.ui.dialogs.create_task_dialog import CreateTaskDialog
@@ -36,6 +40,7 @@ from src.utils.buttons import HoverEffect
 from src.utils.icons import icons
 
 from PySide6.QtCore import QPropertyAnimation, QEasingCurve
+
 
 class SmoothScrollArea(QScrollArea):
     def __init__(self):
@@ -121,7 +126,9 @@ class MainWindow(QMainWindow):
         self._sidebar_container.setMaximumWidth(0)  # hidden by default
         layout.addWidget(self._sidebar_container)
 
-        self._sidebar_anim = QPropertyAnimation(self._sidebar_container, b"maximumWidth", self)
+        self._sidebar_anim = QPropertyAnimation(
+            self._sidebar_container, b"maximumWidth", self
+        )
         self._sidebar_anim.setDuration(180)
         self._sidebar_anim.setEasingCurve(QEasingCurve.OutCubic)
 
@@ -137,7 +144,7 @@ class MainWindow(QMainWindow):
         # Оборачиваем header в QWidget
         header_widget = QWidget(self._main)
         header_widget.setObjectName("Header")
-        #print(header_widget.styleSheet())
+        # print(header_widget.styleSheet())
 
         # Создаём layout для header
         header_layout = QHBoxLayout(header_widget)
@@ -148,7 +155,7 @@ class MainWindow(QMainWindow):
         self._view_icon = QLabel("", self)
         self._view_icon.setFixedWidth(30)
         self._view_icon.setFixedHeight(30)
-        self._icon_header = QPixmap(icons['all_tasks'])
+        self._icon_header = QPixmap(icons["all_tasks"])
         self._view_icon.setPixmap(self._icon_header)
         self._view_icon.setStyleSheet("font-size: 30px;")
         self._view_icon.setScaledContents(True)
@@ -165,7 +172,9 @@ class MainWindow(QMainWindow):
 
         # Кнопка "Добавить задачу"
         self.add_task = QPushButton("+ Добавить задачу", header_widget)
-        self.hover_add_task = HoverEffect(self.add_task, tokens=self._tokens, anim_duration=750)
+        self.hover_add_task = HoverEffect(
+            self.add_task, tokens=self._tokens, anim_duration=750
+        )
         self.add_task.setObjectName("PrimaryButton")
         self.add_task.clicked.connect(self._open_create_task)
         header_layout.addWidget(self.add_task)
@@ -186,7 +195,9 @@ class MainWindow(QMainWindow):
         self._spinner.setAlignment(Qt.AlignCenter)
         self._spinner.setObjectName("LoadingSpinner")
         self._spinner.hide()
-        self._empty_state = QLabel("Задач не осталось, Вы хорошо постарались", self._list_host)
+        self._empty_state = QLabel(
+            "Задач не осталось, Вы хорошо постарались", self._list_host
+        )
         self._empty_state.setAlignment(Qt.AlignCenter)
         self._empty_state.setObjectName("EmptyState")
         self._empty_state.hide()
@@ -253,12 +264,12 @@ class MainWindow(QMainWindow):
         """Фиксирует сайдбар в раскрытом состоянии или возвращает режим hover."""
         self._pinned = checked
         self.sidebar.pin_btn.setText("")
-        self.sidebar.pin_btn.setIcon(QPixmap()) 
+        self.sidebar.pin_btn.setIcon(QPixmap())
         if checked:
-            self.sidebar.pin_btn.setIcon(QPixmap(icons['collapse_sidebar'])) 
+            self.sidebar.pin_btn.setIcon(QPixmap(icons["collapse_sidebar"]))
             self._show_sidebar()
         else:
-            self.sidebar.pin_btn.setIcon(QPixmap(icons['expand_sidebar'])) 
+            self.sidebar.pin_btn.setIcon(QPixmap(icons["expand_sidebar"]))
             self._hide_sidebar()
 
     def _apply_settings(self) -> None:
@@ -313,7 +324,9 @@ class MainWindow(QMainWindow):
         try:
             export_all(self._paths, Path(dest_path))
         except Exception as e:
-            QMessageBox.critical(self, "Экспорт", f"Не удалось экспортировать данные.\n\n{e}")
+            QMessageBox.critical(
+                self, "Экспорт", f"Не удалось экспортировать данные.\n\n{e}"
+            )
             return
         QMessageBox.information(self, "Экспорт", "Экспорт успешно завершён.")
 
@@ -330,10 +343,14 @@ class MainWindow(QMainWindow):
         try:
             import_all(self._paths, Path(src_path))
         except BackupError as e:
-            QMessageBox.critical(self, "Импорт", f"Не удалось импортировать данные.\n\n{e}")
+            QMessageBox.critical(
+                self, "Импорт", f"Не удалось импортировать данные.\n\n{e}"
+            )
             return False
         except Exception as e:
-            QMessageBox.critical(self, "Импорт", f"Не удалось импортировать данные.\n\n{e}")
+            QMessageBox.critical(
+                self, "Импорт", f"Не удалось импортировать данные.\n\n{e}"
+            )
             return False
 
         # Reload everything and refresh UI
@@ -392,22 +409,22 @@ class MainWindow(QMainWindow):
         self._view_icon.setText("")
 
         if key == "all":
-            self._view_icon.setPixmap(QPixmap(icons['all_tasks']))
+            self._view_icon.setPixmap(QPixmap(icons["all_tasks"]))
             self._view_title.setText("Все задачи")
 
         elif key == "deadlines":
-            pixmap = QPixmap(icons['deadlines'])
-            #print(pixmap.isNull())  # диагностика если нужно
+            pixmap = QPixmap(icons["deadlines"])
+            # print(pixmap.isNull())  # диагностика если нужно
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Дедлайны")
 
         elif key == "important":
-            pixmap = QPixmap(icons['important'])            
+            pixmap = QPixmap(icons["important"])
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Важное")
 
         elif key == "done":
-            pixmap = QPixmap(icons['completed_tasks'])            
+            pixmap = QPixmap(icons["completed_tasks"])
             self._view_icon.setPixmap(pixmap)
             self._view_title.setText("Выполненные")
 
@@ -434,7 +451,12 @@ class MainWindow(QMainWindow):
 
         # Active views: higher priority first, then important, then earlier due dates
         due = t.due or date.max
-        return (-int(t.priority or 0), -int(bool(t.important)), due.toordinal(), t.title)
+        return (
+            -int(t.priority or 0),
+            -int(bool(t.important)),
+            due.toordinal(),
+            t.title,
+        )
 
     def _compute_view_tasks(self) -> list[Task]:
         tasks = self._tasks_repo.load_all()
@@ -466,7 +488,9 @@ class MainWindow(QMainWindow):
         self._spinner.setAlignment(Qt.AlignCenter)
         self._spinner.setObjectName("LoadingSpinner")
         self._spinner.hide()
-        self._empty_state = QLabel("Задач не осталось, Вы хорошо постарались", self._list_host)
+        self._empty_state = QLabel(
+            "Задач не осталось, Вы хорошо постарались", self._list_host
+        )
         self._empty_state.setAlignment(Qt.AlignCenter)
         self._empty_state.setObjectName("EmptyState")
         self._empty_state.hide()
@@ -476,7 +500,7 @@ class MainWindow(QMainWindow):
 
     def _on_scroll(self) -> None:
         """Реагирует на прокрутку: при достижении низа подгружает следующую страницу."""
-        
+
         if self._loading:
             return
         sb = self._scroll.verticalScrollBar()
@@ -552,8 +576,12 @@ class MainWindow(QMainWindow):
             return
 
         menu = QMenu(self)
-        toggle_done_action = menu.addAction("Отменить выполнение" if task.done else "Отметить выполненной")
-        toggle_important_action = menu.addAction("Снять важность" if task.important else "Пометить важной")
+        toggle_done_action = menu.addAction(
+            "Отменить выполнение" if task.done else "Отметить выполненной"
+        )
+        toggle_important_action = menu.addAction(
+            "Снять важность" if task.important else "Пометить важной"
+        )
         menu.addSeparator()
         edit_action = menu.addAction("Изменить")
         delete_action = menu.addAction("Удалить")
@@ -603,4 +631,3 @@ class MainWindow(QMainWindow):
             return
         self._tasks_repo.delete(task_id)
         self._reset_and_load_first_page()
-
