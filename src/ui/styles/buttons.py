@@ -11,8 +11,7 @@ from src.theme.theme import ThemeTokens, DerivedTokens
 
 
 def buttons_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
-    return (
-        f"""
+    return f"""
         QPushButton {{ /* Все кнопки */
             background: {tokens.surface_2};
             border: 1px solid {tokens.border};
@@ -68,15 +67,13 @@ def buttons_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             border-radius: 14px;
         }}
         """
-    )
 
 
 def tool_buttons_qss(tokens: ThemeTokens) -> str:
-    return (
-        f"""
+    return f"""
         QToolButton#PinButton:hover, QToolButton#ThemeButton:hover, QToolButton#SettingsButton:hover {{
             background-color: rgba(0, 0, 0, 30);  /* слегка темнеет */
-            border-radius: 8px;                   /* скругление если нужно */
+            border-radius: 8px;
         }}
         QToolButton#PinButton, QToolButton#ThemeButton, QToolButton#SettingsButton {{
             background: {tokens.surface_2};
@@ -84,4 +81,3 @@ def tool_buttons_qss(tokens: ThemeTokens) -> str:
             border-radius: 10px;
         }}
         """
-    )

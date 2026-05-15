@@ -87,7 +87,9 @@ def _is_safe_member(name: str) -> bool:
     return True
 
 
-def _extract_selected(zf: zipfile.ZipFile, *, members: list[str], dest_dir: Path) -> None:
+def _extract_selected(
+    zf: zipfile.ZipFile, *, members: list[str], dest_dir: Path
+) -> None:
     dest_dir.mkdir(parents=True, exist_ok=True)
     for name in members:
         if not _is_safe_member(name):
@@ -116,7 +118,10 @@ def import_all(paths: AppPaths, src_zip: Path) -> None:
             raw_meta = json.loads(zf.read("meta.json").decode("utf-8"))
         except Exception as e:
             raise BackupError("Некорректный архив: meta.json повреждён.") from e
-        if not isinstance(raw_meta, dict) or raw_meta.get("format") != "task-manager-backup":
+        if (
+            not isinstance(raw_meta, dict)
+            or raw_meta.get("format") != "task-manager-backup"
+        ):
             raise BackupError("Некорректный архив: неизвестный формат.")
 
         wanted = [n for n in names if n.startswith(("data/", "icons/"))]
@@ -136,7 +141,10 @@ def import_all(paths: AppPaths, src_zip: Path) -> None:
             paths.ensure()
 
             # Swap directories atomically-ish (best effort).
-            backup_root = paths.config_dir / f"_backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+            backup_root = (
+                paths.config_dir
+                / f"_backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+            )
             backup_root.mkdir(parents=True, exist_ok=True)
 
             if paths.data_dir.exists():
@@ -146,4 +154,3 @@ def import_all(paths: AppPaths, src_zip: Path) -> None:
 
             shutil.copytree(new_data, paths.data_dir, dirs_exist_ok=True)
             shutil.copytree(new_icons, paths.icons_dir, dirs_exist_ok=True)
-

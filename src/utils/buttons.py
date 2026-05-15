@@ -1,16 +1,18 @@
-from PySide6.QtWidgets import QWidget, QGraphicsColorizeEffect, QPushButton, QToolButton
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, Qt
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation
 from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QGraphicsColorizeEffect, QWidget
+
 from src.ui.styles.app import ThemeTokens
+
 
 class HoverEffect:
     def __init__(
-            self,
-            widget: QWidget,
-            tokens: ThemeTokens,
-            strength=1.5,
-            anim_duration=1500,
-        ):
+        self,
+        widget: QWidget,
+        tokens: ThemeTokens,
+        strength=1.5,
+        anim_duration=1500,
+    ):
         self.widget = widget
         self._effect = QGraphicsColorizeEffect(widget)
         self._effect.setColor(QColor(tokens.accent))

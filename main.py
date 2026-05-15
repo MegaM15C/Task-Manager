@@ -1,5 +1,4 @@
 import sys
-import os
 import logging
 import platform
 from pathlib import Path
@@ -51,6 +50,7 @@ def setup_app(app: QApplication) -> None:
     system = platform.system()
     if system == "Windows":
         import ctypes
+
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
             "task.manager.app"
         )

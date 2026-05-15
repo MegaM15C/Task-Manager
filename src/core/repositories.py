@@ -93,9 +93,13 @@ class CategoriesRepository:
 
     def save_all(self, cats: Iterable[Category]) -> None:
         """Перезаписывает JSON-файл полным списком переданных категорий."""
-        write_json_atomic(self._paths.categories_file, [_category_to_json(c) for c in cats])
+        write_json_atomic(
+            self._paths.categories_file, [_category_to_json(c) for c in cats]
+        )
 
-    def add(self, name: str, color: str, *, icon_source_path: Optional[Path]) -> Category:
+    def add(
+        self, name: str, color: str, *, icon_source_path: Optional[Path]
+    ) -> Category:
         """Создаёт новую категорию и сохраняет её.
 
         Дополнительно, если указан путь к иконке, копирует файл в директорию
@@ -112,7 +116,9 @@ class CategoriesRepository:
             self._paths.icons_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(icon_source_path, dest)
 
-        cat = Category(id=cat_id, name=name.strip(), color=color, icon_filename=icon_filename)
+        cat = Category(
+            id=cat_id, name=name.strip(), color=color, icon_filename=icon_filename
+        )
         cats.append(cat)
         self.save_all(cats)
         return cat
@@ -260,7 +266,9 @@ class TasksRepository:
                     continue
                 if str(item.get("id")) == task_id:
                     item["done"] = bool(done)
-                    item["done_at"] = datetime.now(timezone.utc).isoformat() if done else None
+                    item["done_at"] = (
+                        datetime.now(timezone.utc).isoformat() if done else None
+                    )
                     updated = True
                     break
             if updated:
@@ -343,7 +351,11 @@ class TasksRepository:
             if not isinstance(raw, list):
                 continue
             before = len(raw)
-            raw = [x for x in raw if not (isinstance(x, dict) and str(x.get("id")) == task_id)]
+            raw = [
+                x
+                for x in raw
+                if not (isinstance(x, dict) and str(x.get("id")) == task_id)
+            ]
             if len(raw) != before:
                 write_json_atomic(path, raw)
                 return True

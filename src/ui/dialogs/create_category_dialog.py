@@ -8,15 +8,13 @@ from typing import Optional
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QColorDialog,
     QFileDialog,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMessageBox,
     QPushButton,
-    QColorDialog,
-    QFrame,
-    QVBoxLayout,
-    QSizePolicy
 )
 
 from src.utils.dialog import DialogHelperMixin
@@ -34,12 +32,13 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
 
         self._name = QLineEdit(self)
         self._name.setPlaceholderText("Введите название…")
+        self._name.setMaxLength(24)
         self._name.setFixedWidth(150)
 
         self._accent_btn = QPushButton("Выбрать цвет", self)
         self._accent_btn.setCursor(Qt.PointingHandCursor)
         self._accent_btn.clicked.connect(self._pick_color)
-        
+
         self._accent_preview = QPushButton("", self)
         self._accent_preview.setFixedSize(28, 28)
         self._accent_preview.clicked.connect(self._pick_color)
@@ -53,7 +52,7 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
         # self._icon_lbl.setStyleSheet(
         #     """
         #     background: transparent;
-            
+
         #     border-radius: 8px;
         #     """
         # )
@@ -66,29 +65,29 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
             self._row(
                 "Название категории",
                 "Название, которое будет отображаться рядом с задачей",
-                control_widget=self._name
-                )
+                control_widget=self._name,
             )
-        
+        )
+
         self.body.addWidget(self._divider())
-        
+
         self.body.addLayout(
             self._row(
                 "Акцентный цвет",
                 "Выбор акцентного цвета категории",
-                control_layout=self._accent_control()
-                )
+                control_layout=self._accent_control(),
             )
+        )
 
         self.body.addWidget(self._divider())
-        
+
         self.body.addLayout(
             self._row(
                 "Иконка категории",
                 "Загрузите иконку, которая будет выражать категорию",
-                control_layout=icon_row
+                control_layout=icon_row,
             )
-            )
+        )
 
         create = QPushButton("Создать", self)
         create.setObjectName("AcceptButton")
@@ -100,6 +99,22 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addWidget(cancel)
         self.footer.addWidget(create)
 
+    def accept(self) -> None:  # type: ignore[override]
+        name = self._name.text().strip()
+        if not name:
+            QMessageBox.warning(self, "Проверка данных", "Введите название категории.")
+            self._name.setFocus()
+            return
+        if len(name) > 24:
+            QMessageBox.warning(
+                self,
+                "Проверка данных",
+                "Название категории не должно быть длиннее 24 символов.",
+            )
+            self._name.setFocus()
+            return
+        super().accept()
+
     def _accent_control(self) -> QHBoxLayout:
         """Возвращает layout с кнопкой выбора цвета и кругом-превью."""
         h = QHBoxLayout()
@@ -108,7 +123,6 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
         h.addWidget(self._accent_btn)
         h.addWidget(self._accent_preview)
         return h
-
 
     def _set_color_preview(self) -> None:
         """Обновляет внешний вид круглой кнопки-превью акцентного цвета."""
@@ -144,4 +158,3 @@ class CreateCategoryDialog(OverlayDialog, DialogHelperMixin):
     def result(self) -> tuple[str, str, Optional[Path]]:
         """Возвращает введённые данные категории (имя, цвет, путь к иконке)."""
         return (self._name.text().strip(), self._color, self._icon_path)
-

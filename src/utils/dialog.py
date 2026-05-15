@@ -17,7 +17,7 @@ class DialogHelperMixin:
         *,
         control_widget=None,
         control_layout: QHBoxLayout | None = None,
-        ) -> QHBoxLayout:
+    ) -> QHBoxLayout:
         """Строит одну строку настроек: заголовок + описание + контрол справа."""
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)

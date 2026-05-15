@@ -3,16 +3,14 @@ from __future__ import annotations
 """Диалог настроек приложения (акцент, тема, шрифт)."""
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
     QComboBox,
     QColorDialog,
     QFileDialog,
-    QFrame,
+    QFontComboBox,
     QHBoxLayout,
-    QLabel,
     QPushButton,
-    QVBoxLayout,
 )
 
 from typing import Callable, Optional
@@ -20,6 +18,7 @@ from typing import Callable, Optional
 from src.core.models import Settings
 from src.ui.widgets.overlay_dialog import OverlayDialog
 from src.utils.dialog import DialogHelperMixin
+
 
 class SettingsDialog(OverlayDialog, DialogHelperMixin):
     """Диалог «Настройки» поверх главного окна."""
@@ -50,13 +49,16 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
 
         self._theme = QComboBox(self)
         self._theme.addItems(["Светлая", "Тёмная"])
+        self._configure_compact_combo(self._theme, width=150)
 
-        self._font = QComboBox(self)
-        self._font.addItems(["Ubuntu Sans", "Inter", "Roboto", "Segoe UI"])
+        self._font = QFontComboBox(self)
+        self._font.setFontFilters(QFontComboBox.FontFilter.ScalableFonts)
+        self._configure_compact_combo(self._font, width=180)
+        self._selected_font_family = settings.font_family
         if settings.font_family:
-            i = self._font.findText(settings.font_family)
-            if i >= 0:
-                self._font.setCurrentIndex(i)
+            self._font.setCurrentFont(QFont(settings.font_family))
+            self._selected_font_family = self._font.currentFont().family()
+        self._font.currentFontChanged.connect(self._on_font_selected)
 
         self.body.addLayout(
             self._row(
@@ -114,7 +116,6 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         self.footer.addWidget(cancel)
         self.footer.addWidget(self._save)
 
-
     def _accent_control(self) -> QHBoxLayout:
         """Возвращает layout с кнопкой выбора цвета и кругом-превью."""
         h = QHBoxLayout()
@@ -123,6 +124,15 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         h.addWidget(self._accent_btn)
         h.addWidget(self._accent_preview)
         return h
+
+    @staticmethod
+    def _configure_compact_combo(combo: QComboBox, *, width: int) -> None:
+        combo.setFixedWidth(width)
+        combo.setMaxVisibleItems(8)
+        combo.view().setMaximumHeight(220)
+
+    def _on_font_selected(self, font: QFont) -> None:
+        self._selected_font_family = font.family()
 
     def _apply_initial(self) -> None:
         """Применяет стартовые значения акцентного цвета и темы."""
@@ -141,8 +151,10 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
 
     def _pick_accent(self) -> None:
         """Открывает цветовой диалог и обновляет текущий акцентный цвет."""
-        c = QColorDialog.getColor(QColor(self._settings.accent_color), self, "Акцентный цвет")
-        #print(c.name())
+        c = QColorDialog.getColor(
+            QColor(self._settings.accent_color), self, "Акцентный цвет"
+        )
+        # print(c.name())
         if not c.isValid():
             return
         self._settings = Settings(
@@ -158,7 +170,7 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         return Settings(
             accent_color=self._settings.accent_color,
             theme=theme,
-            font_family=self._font.currentText(),
+            font_family=self._selected_font_family,
         )
 
     def _export_import_controls(self) -> QHBoxLayout:
@@ -198,4 +210,3 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         # "пересохранить" старые значения поверх импортированных.
         if ok:
             self.reject()
-

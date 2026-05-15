@@ -1,19 +1,9 @@
-from __future__ import annotations
-
-"""Формирование QSS-стилей для отдельных 
-элементов управления"""
-
-from dataclasses import dataclass
-
-from PySide6.QtGui import QFont
-from PySide6.QtGui import QColor
-from src.core.models import Settings
 from src.theme.theme import ThemeTokens, DerivedTokens
 from src.utils.icons import icons
 
+
 def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
-    return (
-        f"""
+    return f"""
         QCheckBox#ImportantCheckBox {{
             background: transparent;
             border: 1px solid {tokens.border};
@@ -30,7 +20,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
         QCheckBox#ImportantCheckBox::indicator:checked {{
             background: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
-            image: url({icons['check']});
+            image: url({icons["check"]});
             border-radius: 4px;
         }}
 
@@ -47,19 +37,29 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             background-color: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
             border-radius: 4px;
-            image: url({icons['check']}); 
-        }}
+            image: url("resources/icons/check.png");
+            }}
 
         QLineEdit, QComboBox, QDateEdit {{
             background: {tokens.surface};
             border: 1px solid {tokens.border};
             border-radius: 10px;
-            padding: 8px 10px;
+            padding: 8px 34px 8px 10px;
             selection-background-color: {tokens.accent};
         }}
         QComboBox::drop-down {{
-            border: 0px;
-            width: 26px;
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            background: {tokens.surface_2};
+            border-left: 1px solid {tokens.border};
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            width: 28px;
+        }}
+        QComboBox::down-arrow {{
+            image: url("resources/icons/arrow_down.png");
+            width: 14px;
+            height: 14px;
         }}
 
         QScrollArea {{
@@ -75,11 +75,8 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             background: {tokens.border};
             border-radius: 2px;
             min-height: 30px;
-        }}
+            }} 
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
             height: 0px;
         }}
-
-
         """
-    )

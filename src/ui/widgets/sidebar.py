@@ -2,50 +2,26 @@ from __future__ import annotations
 
 """Левый сайдбар с навигацией по видам и категориям задач."""
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QMenu,
     QPushButton,
-    QScrollArea,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QSize
-from PySide6.QtGui import QPixmap
-from src.core.models import Category
-from src.utils.buttons import HoverEffect
-from src.ui.styles.app import ThemeTokens
 
-from src.utils.icons import icons
+from src.core.models import Category
 from src.core.paths import AppPaths
 from src.core.repositories import SettingsRepository
-
-class SmoothScrollArea(QScrollArea):
-    def __init__(self):
-        super().__init__()
-
-        self._anim = QPropertyAnimation(self.verticalScrollBar(), b"value")
-        self._anim.setDuration(400)
-        self._anim.setEasingCurve(QEasingCurve.OutCubic)
-
-    def wheelEvent(self, event):
-        sb = self.verticalScrollBar()
-
-        delta = event.angleDelta().y()
-
-        # целевая позиция
-        new_value = sb.value() - delta
-
-        new_value = max(sb.minimum(), min(sb.maximum(), new_value))
-
-        self._anim.stop()
-        self._anim.setStartValue(sb.value())
-        self._anim.setEndValue(new_value)
-        self._anim.start()
+from src.ui.styles.app import ThemeTokens
+from src.ui.widgets.smooth_scroll import SmoothScrollArea
+from src.utils.buttons import HoverEffect
+from src.utils.icons import icons
 
 
 class Sidebar(QFrame):
@@ -56,6 +32,7 @@ class Sidebar(QFrame):
     category_delete_requested = Signal(str)  # category id
     settings_requested = Signal()
     theme_toggled = Signal(bool)  # True => dark
+
     def __init__(
         self,
         tokens: ThemeTokens,
@@ -75,62 +52,70 @@ class Sidebar(QFrame):
         root = QVBoxLayout(self)
         root.setContentsMargins(14, 14, 14, 14)
         root.setSpacing(12)
-        
+
         top = QHBoxLayout()
         top.setContentsMargins(0, 0, 0, 0)
         title = QLabel("<b>Меню</b>", self)
-        title.setStyleSheet("" \
-            "font-size: 28px",
-
+        title.setStyleSheet(
+            "" "font-size: 28px",
         )
         title.setObjectName("SidebarTitle")
         top.addWidget(title)
         top.addStretch(1)
 
-        self.pin_btn =QToolButton(self)
+        self.pin_btn = QToolButton(self)
         self._pin_hover = HoverEffect(self.pin_btn, tokens=tokens)
         self.pin_btn.setCheckable(True)
-        self.pin_btn.setIcon(QPixmap(icons['expand_sidebar']))
+        self.pin_btn.setIcon(QPixmap(icons["expand_sidebar"]))
         self.pin_btn.setToolTip("Закрепить сайдбар")
         self.pin_btn.setObjectName("PinButton")
         self.pin_btn.setStyleSheet("""
 
         """)
-        
+
         self.pin_btn.setFixedSize(34, 34)
-        #self.pin_btn.clicked.connect(self.Sidebar._on_pin_toggled)
+        # self.pin_btn.clicked.connect(self.Sidebar._on_pin_toggled)
         top.addWidget(self.pin_btn)
 
         root.addLayout(top)
 
         self._nav_all = QPushButton("Все задачи", self)
-        self._nav_all.setIcon(QPixmap(icons['all_tasks']))
+        self._nav_all.setIcon(QPixmap(icons["all_tasks"]))
         self._nav_all.setIconSize(QSize(25, 25))
         # self._nav_all.set
         self._nav_all_hover = HoverEffect(self._nav_all, tokens=tokens)
 
         self._nav_deadlines = QPushButton("Дедлайны", self)
-        self._nav_deadlines.setIcon(QPixmap(icons['deadlines']))
+        self._nav_deadlines.setIcon(QPixmap(icons["deadlines"]))
         self._nav_deadlines_hover = HoverEffect(self._nav_deadlines, tokens=tokens)
-        
+
         self._nav_important = QPushButton("Важное", self)
-        self._nav_important.setIcon(QPixmap(icons['important']))
+        self._nav_important.setIcon(QPixmap(icons["important"]))
         self._nav_important_hover = HoverEffect(self._nav_important, tokens=tokens)
 
         self._nav_done = QPushButton("Выполненные", self)
         # self._nav_done.set
-        self._nav_done.setIcon(QPixmap(icons['completed_tasks']))
+        self._nav_done.setIcon(QPixmap(icons["completed_tasks"]))
         self._nav_done_hover = HoverEffect(self._nav_done, tokens=tokens)
 
-        for b in (self._nav_all, self._nav_deadlines, self._nav_important, self._nav_done):
+        for b in (
+            self._nav_all,
+            self._nav_deadlines,
+            self._nav_important,
+            self._nav_done,
+        ):
             b.setObjectName("NavButton")
             b.setIconSize(QSize(25, 25))
             b.setText("    " + b.text())
             b.setCursor(Qt.PointingHandCursor)
 
         self._nav_all.clicked.connect(lambda: self.view_selected.emit("all"))
-        self._nav_deadlines.clicked.connect(lambda: self.view_selected.emit("deadlines"))
-        self._nav_important.clicked.connect(lambda: self.view_selected.emit("important"))
+        self._nav_deadlines.clicked.connect(
+            lambda: self.view_selected.emit("deadlines")
+        )
+        self._nav_important.clicked.connect(
+            lambda: self.view_selected.emit("important")
+        )
         self._nav_done.clicked.connect(lambda: self.view_selected.emit("done"))
 
         root.addWidget(self._nav_all)
@@ -154,8 +139,8 @@ class Sidebar(QFrame):
 
         self.scroll = SmoothScrollArea()
         self.scroll.verticalScrollBar().valueChanged.connect(
-    lambda _: [w.update() for w in self._cats_container.findChildren(QWidget)]
-)
+            lambda _: [w.update() for w in self._cats_container.findChildren(QWidget)]
+        )
         self.scroll.setWidgetResizable(True)
         self.scroll.setFrameShape(QFrame.NoFrame)
         self.scroll.setWidget(self._cats_container)
@@ -174,14 +159,10 @@ class Sidebar(QFrame):
         self._theme_hover = HoverEffect(self._theme_btn, tokens=tokens)
         self._theme_btn.setCheckable(True)
         settings = SettingsRepository(self._paths).load()
-        if settings.theme == 'light':
-            self._theme_btn.setIcon(
-                QPixmap(icons['light_theme_indicator'])
-            )
+        if settings.theme == "light":
+            self._theme_btn.setIcon(QPixmap(icons["light_theme_indicator"]))
         else:
-            self._theme_btn.setIcon(
-                QPixmap(icons['dark_theme_indicator'])
-            )
+            self._theme_btn.setIcon(QPixmap(icons["dark_theme_indicator"]))
         self._theme_btn.setToolTip("Переключить тему")
         self._theme_btn.setObjectName("ThemeButton")
         self._theme_btn.setFixedSize(42, 34)
@@ -192,7 +173,7 @@ class Sidebar(QFrame):
 
         self.gear = QToolButton(self)
         self._gear_hover = HoverEffect(self.gear, tokens=tokens)
-        self.gear.setIcon(QPixmap(icons['settings']))
+        self.gear.setIcon(QPixmap(icons["settings"]))
         self.gear.setToolTip("Настройки")
         self.gear.setObjectName("SettingsButton")
         self.gear.setFixedSize(42, 34)
@@ -209,13 +190,9 @@ class Sidebar(QFrame):
         self._theme_btn.setChecked(dark)
         self._theme_btn.setIcon(QPixmap())
         if dark:
-            self._theme_btn.setIcon(
-                QPixmap(icons['dark_theme_indicator'])
-            )
+            self._theme_btn.setIcon(QPixmap(icons["dark_theme_indicator"]))
         else:
-            self._theme_btn.setIcon(
-                QPixmap(icons['light_theme_indicator'])
-            )
+            self._theme_btn.setIcon(QPixmap(icons["light_theme_indicator"]))
 
         # self._theme_btn.setText("🌙" if dark else "☀")
         self._theme_btn.blockSignals(False)
@@ -238,11 +215,17 @@ class Sidebar(QFrame):
             b.setObjectName("NavButton")
             self._cat_hovers.append(HoverEffect(b, tokens=self._tokens))
 
-            b.setStyleSheet(f"QPushButton#NavButton{{ border-left: 2px solid {c.color}; font-size: 16px}}")
-            b.clicked.connect(lambda _=False, cid=c.id: self.view_selected.emit(f"category:{cid}"))
+            b.setStyleSheet(
+                f"QPushButton#NavButton{{ border-left: 2px solid {c.color}; font-size: 16px}}"
+            )
+            b.clicked.connect(
+                lambda _=False, cid=c.id: self.view_selected.emit(f"category:{cid}")
+            )
             b.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             b.customContextMenuRequested.connect(
-                lambda pos, cid=c.id, btn=b: self._on_category_context_menu(btn.mapToGlobal(pos), cid)
+                lambda pos, cid=c.id, btn=b: self._on_category_context_menu(
+                    btn.mapToGlobal(pos), cid
+                )
             )
             self._cats_layout.addWidget(b)
 
