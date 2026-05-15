@@ -1,5 +1,5 @@
 from src.theme.theme import ThemeTokens, DerivedTokens
-from src.utils.icons import icons
+from src.utils.icons import icons  # noqa: F401 — used inside f-string QSS
 
 
 def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
@@ -20,7 +20,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
         QCheckBox#ImportantCheckBox::indicator:checked {{
             background: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
-            image: url({icons["check"]});
+            image: url('{icons["check"]}');
             border-radius: 4px;
         }}
 
@@ -37,7 +37,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             background-color: {der_tokens.primary_bg};
             border: 1px solid {tokens.border};
             border-radius: 4px;
-            image: url("resources/icons/check.png");
+            image: url('{icons["check"]}');
             }}
 
         QLineEdit, QComboBox, QDateEdit {{
@@ -57,7 +57,7 @@ def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:
             width: 28px;
         }}
         QComboBox::down-arrow {{
-            image: url("resources/icons/arrow_down.png");
+            image: url('{icons["arrow_down"]}');
             width: 14px;
             height: 14px;
         }}

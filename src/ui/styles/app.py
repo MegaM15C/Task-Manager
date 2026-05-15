@@ -3,8 +3,7 @@ from __future__ import annotations
 """Формирование темы оформления и QSS-стилей для всего приложения."""
 
 
-from PySide6.QtGui import QFont
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 from src.core.models import Settings
 from src.theme.theme import ThemeTokens, DerivedTokens
 
@@ -17,11 +16,11 @@ from src.ui.styles.components import components_qss
 
 
 def app_qss(tokens: ThemeTokens) -> str:
+    """Генерирует общую QSS-строку для приложения на основе токенов темы."""
     primary_bg = QColor(tokens.accent).darker(120).name()
     primary_text = contrast_text_color(primary_bg)
     accent_text = contrast_text_color(tokens.accent)
     derived_tokens = DerivedTokens(primary_bg, primary_text, accent_text)
-    """Генерирует общую QSS-строку для приложения на основе токенов темы."""
     return "".join(
         [
             base_qss(tokens),

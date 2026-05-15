@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Менеджер задач
+Comment=Десктопный менеджер задач
+Exec=task-manager
+Icon=task-manager
+Categories=Office;ProjectManagement;
+StartupWMClass=task-manager
+StartupNotify=true
+Terminal=false

@@ -30,8 +30,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.models import Category, Settings, Task
+from src.core.models import Category, Settings, Task, ViewKey
 from src.core.paths import AppPaths
+from src.utils.resources import resource_path
 from src.core.repositories import (
     CategoriesRepository,
     SettingsRepository,
@@ -50,7 +51,7 @@ from src.utils.buttons import HoverEffect
 from src.utils.icons import icons
 
 HEADER_ICON_SIZE = 30
-CATEGORY_PLACEHOLDER_ICON = Path("resources/icons/category_placeholder.png")
+CATEGORY_PLACEHOLDER_ICON = resource_path("resources/icons/category_placeholder.png")
 
 
 class MainWindow(QMainWindow):
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
         self._categories: list[Category] = self._cats_repo.load_all()
         self._tasks_repo.ensure_seed_data()
 
-        self._active_view_key = "all"
+        self._active_view_key = ViewKey.ALL
         self._page_index = 0
         self._loading = False
         self._view_tasks: list[Task] = []
@@ -95,9 +96,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(root)
         layout = QHBoxLayout(root)
         layout.setContentsMargins(10, 10, 10, 10)
-        # layout.setSpacing(10)
 
-        self.sidebar = Sidebar(self._tokens, root)
+        self.sidebar = Sidebar(self._tokens, root, dark=self._settings.theme == "dark")
         self.sidebar.pin_btn.toggled.connect(self._on_pin_toggled)
         self.sidebar.view_selected.connect(self._on_view_selected)
         self.sidebar.add_category_requested.connect(self._open_create_category)
@@ -122,23 +122,17 @@ class MainWindow(QMainWindow):
         self._main = QFrame(root)
         self._main.setObjectName("MainArea")
         self._main.setFixedHeight(750)
-        # self._main.setStyleSheet('border: 1px solid #000000') # Debug: показывает все границы элементов
         m = QVBoxLayout(self._main)
         m.setContentsMargins(18, 18, 18, 18)
         m.setSpacing(14)
         layout.addWidget(self._main, 1)
 
-        # Оборачиваем header в QWidget
         header_widget = QWidget(self._main)
         header_widget.setObjectName("Header")
-        # print(header_widget.styleSheet())
-
-        # Создаём layout для header
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(8, 8, 8, 8)
         header_layout.setSpacing(8)
 
-        # Иконка вида
         self._view_icon = QLabel("", self)
         self._view_icon.setFixedWidth(HEADER_ICON_SIZE)
         self._view_icon.setFixedHeight(HEADER_ICON_SIZE)
@@ -149,16 +143,13 @@ class MainWindow(QMainWindow):
         self._view_icon.setScaledContents(True)
         header_layout.addWidget(self._view_icon)
 
-        # Заголовок вида
         self._view_title = QLabel("Все задачи", header_widget)
         self._view_title.setObjectName("ViewTitleHeader")
         self._view_icon.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         header_layout.addWidget(self._view_title)
 
-        # Раздвигаем содержимое
         header_layout.addStretch(1)
 
-        # Кнопка "Добавить задачу"
         self.add_task = QPushButton("+ Добавить задачу", header_widget)
         self.hover_add_task = HoverEffect(
             self.add_task, tokens=self._tokens, anim_duration=750
@@ -167,7 +158,6 @@ class MainWindow(QMainWindow):
         self.add_task.clicked.connect(self._open_create_task)
         header_layout.addWidget(self.add_task)
 
-        # Добавляем header_widget в основной layout
         m.addWidget(header_widget)
 
         self._scroll = SmoothScrollArea()
@@ -229,7 +219,6 @@ class MainWindow(QMainWindow):
             return
         self._sidebar_anim.stop()
         self._sidebar_anim.setStartValue(self._sidebar_container.maximumWidth())
-        # self._sidebar_anim.setEasingCurve(QEasingCurve.Type.InSine) # Анимация лагает
         self._sidebar_anim.setEndValue(300)
         self._sidebar_anim.setDuration(650)
         self._sidebar_anim.start()
@@ -240,7 +229,6 @@ class MainWindow(QMainWindow):
             return
         self._sidebar_anim.stop()
         self._sidebar_anim.setStartValue(self._sidebar_container.maximumWidth())
-        # self._sidebar_anim.setEasingCurve(QEasingCurve.Type.InSine) # Анимация лагает
         self._sidebar_anim.setEndValue(0)
         self._sidebar_anim.setDuration(650)
         self._sidebar_anim.start()
@@ -293,8 +281,8 @@ class MainWindow(QMainWindow):
         self._tasks_repo.delete_all_by_category_id(category_id)
         self._cats_repo.delete_by_id(category_id)
         self._reload_sidebar()
-        if self._active_view_key == f"category:{category_id}":
-            self._on_view_selected("all")
+        if self._active_view_key == ViewKey.category(category_id):
+            self._on_view_selected(ViewKey.ALL)
         else:
             self._reset_and_load_first_page()
 
@@ -399,27 +387,23 @@ class MainWindow(QMainWindow):
         self._view_icon.setPixmap(QPixmap())
         self._view_icon.setText("")
 
-        if key == "all":
+        if key == ViewKey.ALL:
             self._view_icon.setPixmap(QPixmap(icons["all_tasks"]))
             self._view_title.setText("Все задачи")
 
-        elif key == "deadlines":
-            pixmap = QPixmap(icons["deadlines"])
-            # print(pixmap.isNull())  # диагностика если нужно
-            self._view_icon.setPixmap(pixmap)
+        elif key == ViewKey.DEADLINES:
+            self._view_icon.setPixmap(QPixmap(icons["deadlines"]))
             self._view_title.setText("Дедлайны")
 
-        elif key == "important":
-            pixmap = QPixmap(icons["important"])
-            self._view_icon.setPixmap(pixmap)
+        elif key == ViewKey.IMPORTANT:
+            self._view_icon.setPixmap(QPixmap(icons["important"]))
             self._view_title.setText("Важное")
 
-        elif key == "done":
-            pixmap = QPixmap(icons["completed_tasks"])
-            self._view_icon.setPixmap(pixmap)
+        elif key == ViewKey.DONE:
+            self._view_icon.setPixmap(QPixmap(icons["completed_tasks"]))
             self._view_title.setText("Выполненные")
 
-        elif key.startswith("category:"):
+        elif key.startswith(ViewKey.CATEGORY_PREFIX):
             cid = key.split(":", 1)[1]
             c = next((x for x in self._categories if x.id == cid), None)
             self._view_icon.setPixmap(self._category_header_icon(c))
@@ -476,7 +460,7 @@ class MainWindow(QMainWindow):
 
     def _view_sort_key(self, t: Task) -> tuple:
         # Completed view: newest completed first
-        if self._active_view_key == "done":
+        if self._active_view_key == ViewKey.DONE:
             done_at = t.done_at
             if isinstance(done_at, datetime):
                 # Ensure timestamp() is safe across platforms.
@@ -549,21 +533,20 @@ class MainWindow(QMainWindow):
 
     def _passes_view_filter(self, t: Task) -> bool:
         """Проверяет, подходит ли задача под текущий выбранный вид (фильтр)."""
-        if self._active_view_key != "done" and t.done:
+        if self._active_view_key != ViewKey.DONE and t.done:
             return False
-        if self._active_view_key == "done":
+        if self._active_view_key == ViewKey.DONE:
             return t.done
-        if self._active_view_key == "all":
+        if self._active_view_key == ViewKey.ALL:
             return True
-        if self._active_view_key == "important":
+        if self._active_view_key == ViewKey.IMPORTANT:
             return t.important
-        if self._active_view_key == "deadlines":
-            # Незавершённые: done уже отфильтрован выше. Дедлайн — просроченные или до конца ближайших 7 дней.
+        if self._active_view_key == ViewKey.DEADLINES:
             if t.due is None:
                 return False
             horizon = date.today() + timedelta(days=7)
             return t.due <= horizon
-        if self._active_view_key.startswith("category:"):
+        if self._active_view_key.startswith(ViewKey.CATEGORY_PREFIX):
             cid = self._active_view_key.split(":", 1)[1]
             return t.category_id == cid
         return True

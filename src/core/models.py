@@ -9,6 +9,20 @@ from typing import Literal, Optional
 ThemeName = Literal["light", "dark"]
 
 
+class ViewKey:
+    """Константы ключей видов для навигации (сайдбар → главное окно)."""
+
+    ALL = "all"
+    DEADLINES = "deadlines"
+    IMPORTANT = "important"
+    DONE = "done"
+    CATEGORY_PREFIX = "category:"
+
+    @staticmethod
+    def category(cat_id: str) -> str:
+        return f"category:{cat_id}"
+
+
 @dataclass(frozen=True)
 class Settings:
     """Настройки внешнего вида приложения.

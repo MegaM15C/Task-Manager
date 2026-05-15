@@ -10,6 +10,7 @@ from src.core.paths import AppPaths
 from src.core.recovery import StorageRecoveryManager
 from src.ui.dialogs.storage_error_dialog import StorageErrorDialog
 from src.ui.main_window import MainWindow
+from src.utils.resources import resource_path
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +44,9 @@ def _setup_logging(log_file: Path) -> None:
 
 
 def setup_app(app: QApplication) -> None:
-    icon_path = "resources/icons/app_icon.png"
-    app.setWindowIcon(QIcon(icon_path))
+    app.setWindowIcon(QIcon(str(resource_path("resources/icons/app_icon.png"))))
     app.setApplicationName("task-manager")
+    app.setApplicationDisplayName("Менеджер задач")
 
     system = platform.system()
     if system == "Windows":
@@ -55,6 +56,9 @@ def setup_app(app: QApplication) -> None:
             "task.manager.app"
         )
     elif system == "Linux":
+        # Связывает процесс с .desktop-файлом для корректного отображения
+        # иконки и имени приложения в Dock/Activities на Wayland и X11.
+        # Требует установки task-manager.desktop (см. README).
         app.setDesktopFileName("task-manager")
 
 
