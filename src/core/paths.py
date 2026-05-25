@@ -21,7 +21,7 @@ class AppPaths:
     @property
     def config_dir(self) -> Path:
         """Корневая конфигурационная директория приложения в профиле пользователя."""
-        return Path(user_config_dir(self.app_name))
+        return Path(user_config_dir(self.app_name, appauthor=False))
 
     @property
     def data_dir(self) -> Path:
