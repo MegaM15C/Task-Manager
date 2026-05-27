@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 DIST = ROOT / "dist"
 BUILD = ROOT / "build"
-VERSION = "0.8.0"
+VERSION = "1.0.0"
 APP_NAME = "task-manager"
 
 
@@ -109,7 +109,7 @@ def build_deb(binary: Path) -> Path:
     )
     postinst.chmod(0o755)
 
-    deb_filename = f"{APP_NAME}_{VERSION}_amd64.deb"
+    deb_filename = f"{APP_NAME}.deb"
     deb_path = DIST / deb_filename
     run(["dpkg-deb", "--build", "--root-owner-group", str(pkg_root), str(deb_path)])
     return deb_path
