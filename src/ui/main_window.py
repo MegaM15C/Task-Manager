@@ -266,21 +266,29 @@ class MainWindow(QMainWindow):
         self.sidebar.set_categories(self._categories)
 
     def _on_delete_category(self, category_id: str) -> None:
-        """Удаляет категорию и все задачи в ней после подтверждения."""
         cat = next((x for x in self._categories if x.id == category_id), None)
         name = cat.name if cat else category_id
-        result = QMessageBox.question(
-            self,
-            "Удалить категорию",
-            f"Удалить категорию «{name}» и все задачи в ней? Это действие нельзя отменить.",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
+
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Удалить категорию")
+        msg_box.setText(
+            f"Удалить категорию «{name}» и все задачи в ней? "
+            "Это действие нельзя отменить."
         )
-        if result != QMessageBox.StandardButton.Yes:
+
+        yes_button = msg_box.addButton("Да", QMessageBox.ButtonRole.YesRole)
+        no_button = msg_box.addButton("Нет", QMessageBox.ButtonRole.NoRole)
+
+        msg_box.setDefaultButton(no_button)
+        msg_box.exec()
+
+        if msg_box.clickedButton() != yes_button:
             return
+
         self._tasks_repo.delete_all_by_category_id(category_id)
         self._cats_repo.delete_by_id(category_id)
         self._reload_sidebar()
+
         if self._active_view_key == ViewKey.category(category_id):
             self._on_view_selected(ViewKey.ALL)
         else:
@@ -309,35 +317,61 @@ class MainWindow(QMainWindow):
             return
         QMessageBox.information(self, "Экспорт", "Экспорт успешно завершён.")
 
-    def _import_backup(self, src_path: str) -> None:
-        result = QMessageBox.question(
-            self,
-            "Импорт",
-            "Импорт заменит текущие настройки, категории и задачи. Продолжить?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
+    def _import_backup(self, src_path: str) -> bool:
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Warning)
+        msg_box.setWindowTitle("Импорт")
+        msg_box.setText(
+            "Импорт заменит текущие настройки, категории и задачи.\n\n" "Продолжить?"
         )
-        if result != QMessageBox.StandardButton.Yes:
+
+        yes_button = msg_box.addButton(
+            "Да",
+            QMessageBox.ButtonRole.YesRole,
+        )
+
+        no_button = msg_box.addButton(
+            "Нет",
+            QMessageBox.ButtonRole.NoRole,
+        )
+
+        no_button.setDefault(True)
+
+        msg_box.exec()
+
+        if msg_box.clickedButton() != yes_button:
             return False
+
         try:
             import_all(self._paths, Path(src_path))
+
         except BackupError as e:
             QMessageBox.critical(
-                self, "Импорт", f"Не удалось импортировать данные.\n\n{e}"
-            )
-            return False
-        except Exception as e:
-            QMessageBox.critical(
-                self, "Импорт", f"Не удалось импортировать данные.\n\n{e}"
+                self,
+                "Импорт",
+                f"Не удалось импортировать данные.\n\n{e}",
             )
             return False
 
-        # Reload everything and refresh UI
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Импорт",
+                f"Не удалось импортировать данные.\n\n{e}",
+            )
+            return False
+
         self._settings = self._settings_repo.load()
         self._apply_settings()
         self._reload_sidebar()
         self._reset_and_load_first_page()
-        QMessageBox.information(self, "Импорт", "Импорт успешно завершён.")
+
+        QMessageBox.information(
+            self,
+            "Импорт",
+            "Импорт успешно завершён.",
+        )
+
         return True
 
     def _on_theme_toggled(self, dark: bool) -> None:
@@ -641,14 +675,28 @@ class MainWindow(QMainWindow):
 
     def _delete_task(self, task_id: str) -> None:
         """Удаляет задачу после подтверждения пользователем."""
-        result = QMessageBox.question(
-            self,
-            "Удалить задачу",
-            "Удалить выбранную задачу?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
+
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Warning)
+        msg_box.setWindowTitle("Удалить задачу")
+        msg_box.setText("Удалить выбранную задачу?")
+
+        yes_button = msg_box.addButton(
+            "Да",
+            QMessageBox.ButtonRole.YesRole,
         )
-        if result != QMessageBox.StandardButton.Yes:
+
+        no_button = msg_box.addButton(
+            "Нет",
+            QMessageBox.ButtonRole.NoRole,
+        )
+
+        no_button.setDefault(True)
+
+        msg_box.exec()
+
+        if msg_box.clickedButton() != yes_button:
             return
+
         self._tasks_repo.delete(task_id)
         self._reset_and_load_first_page()

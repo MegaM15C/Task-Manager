@@ -146,7 +146,6 @@ def import_all(paths: AppPaths, src_zip: Path) -> None:
                 / f"_backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
             )
             backup_root.mkdir(parents=True, exist_ok=True)
-
             if paths.data_dir.exists():
                 shutil.move(str(paths.data_dir), str(backup_root / "data"))
             if paths.icons_dir.exists():

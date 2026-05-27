@@ -243,8 +243,18 @@ class TasksRepository:
         """Создаёт пару стартовых задач при первом запуске приложения."""
         if self.page_count() > 0:
             return
-        self.add("Welcome to TaskManagerApp", category_id=None, due=_today())
-        self.add("Pin the sidebar to keep it open", category_id=None, due=None)
+        self.add(
+            "Добро пожаловать в Менеджер Задач",
+            category_id=None,
+            priority=2,
+            due=_today(),
+        )
+        self.add(
+            "Закрепите боковую панель, чтобы она оставалась открытой",
+            category_id=None,
+            priority=1,
+            due=_today(),
+        )
 
     def set_done(self, task_id: str, done: bool) -> bool:
         """Обновляет флаг выполнения задачи в JSON без загрузки всех задач.
