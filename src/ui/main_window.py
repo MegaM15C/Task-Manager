@@ -505,6 +505,21 @@ class MainWindow(QMainWindow):
                 ts = 0.0
             return (-ts,)
 
+        # ALL view: незавершённые первыми (приоритет → важность → дедлайн → название),
+        # затем выполненные (по убыванию done_at, как в представлении «Выполненные»).
+        if self._active_view_key == ViewKey.ALL:
+            if t.done:
+                done_at = t.done_at
+                if isinstance(done_at, datetime):
+                    if done_at.tzinfo is None:
+                        done_at = done_at.replace(tzinfo=timezone.utc)
+                    ts = done_at.timestamp()
+                else:
+                    ts = 0.0
+                return (1, -ts, 0, 0, "")
+            due = t.due or date.max
+            return (0, -int(t.priority or 0), -int(bool(t.important)), due.toordinal(), t.title)
+
         # Active views: higher priority first, then important, then earlier due dates
         due = t.due or date.max
         return (
@@ -567,7 +582,7 @@ class MainWindow(QMainWindow):
 
     def _passes_view_filter(self, t: Task) -> bool:
         """Проверяет, подходит ли задача под текущий выбранный вид (фильтр)."""
-        if self._active_view_key != ViewKey.DONE and t.done:
+        if self._active_view_key not in (ViewKey.DONE, ViewKey.ALL) and t.done:
             return False
         if self._active_view_key == ViewKey.DONE:
             return t.done
