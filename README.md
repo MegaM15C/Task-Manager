@@ -124,7 +124,7 @@ QT_QPA_PLATFORM=xcb python main.py
 Он автоматически включается в `.deb`-пакет и устанавливается при его установке:
 
 ```bash
-sudo dpkg -i dist/task-manager_0.8.0_amd64.deb
+sudo apt install ./dist/task-manager_0.8.0_amd64.deb
 ```
 
 После установки пакета:
