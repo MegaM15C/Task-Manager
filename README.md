@@ -48,7 +48,7 @@ Task-Manager/
 | ОС      | Путь                                            |
 |---------|-------------------------------------------------|
 | Linux   | `~/.config/TaskManagerApp/`                     |
-| Windows | `%APPDATA%\TaskManagerApp\`                     |
+| Windows | `%LOCALAPPDATA%\TaskManagerApp\`                     |
 | macOS   | `~/Library/Application Support/TaskManagerApp/` |
 
 Внутри: `data/settings.json`, `data/categories.json`, `data/tasks_pages/page_NNNN.json`, `data/icons/`.
@@ -96,11 +96,7 @@ python main.py
 
 ### Зависимости для сборки
 
-```bash
-pip install pyinstaller
-```
-
-На Linux также требуется `dpkg-deb` (входит в пакет `dpkg`, присутствует в большинстве дистрибутивов).
+На Linux также требуется `dpkg-deb` для сборки в .deb-пакет (входит в пакет `dpkg`, присутствует в большинстве дистрибутивов).
 
 ### Запуск сборки
 
