@@ -62,9 +62,9 @@ def build_deb(binary: Path) -> Path:
     dest_bin.chmod(0o755)
 
     # Иконка (берётся из исходников проекта)
-    icon_src = ROOT / "resources" / "icons" / "app_icon.ico"
+    icon_src = ROOT / "resources" / "icons" / "app_icon.png"
     if icon_src.exists():
-        shutil.copy2(icon_src, icon_dir / f"{APP_NAME}.ico")
+        shutil.copy2(icon_src, icon_dir / f"{APP_NAME}.png")
 
     # .desktop-файл
     (apps_dir / f"{APP_NAME}.desktop").write_text(
