@@ -62,9 +62,9 @@ def build_deb(binary: Path) -> Path:
     dest_bin.chmod(0o755)
 
     # Иконка (берётся из исходников проекта)
-    icon_src = ROOT / "resources" / "icons" / "app_icon.png"
+    icon_src = ROOT / "resources" / "icons" / "app_icon.ico"
     if icon_src.exists():
-        shutil.copy2(icon_src, icon_dir / f"{APP_NAME}.png")
+        shutil.copy2(icon_src, icon_dir / f"{APP_NAME}.ico")
 
     # .desktop-файл
     (apps_dir / f"{APP_NAME}.desktop").write_text(
@@ -134,7 +134,9 @@ def main() -> int:
         metavar="PLATFORM",
         help="Целевая платформа: linux | windows (по умолчанию — текущая ОС)",
     )
-    parser.add_argument("--clean", action="store_true", help="Очистить build/ и dist/ перед сборкой")
+    parser.add_argument(
+        "--clean", action="store_true", help="Очистить build/ и dist/ перед сборкой"
+    )
     args = parser.parse_args()
 
     if args.clean:

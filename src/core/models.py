@@ -34,7 +34,7 @@ class Settings:
     """
 
     accent_color: str = "#6D5EF6"
-    theme: ThemeName = "dark"
+    theme: ThemeName = "light"
     font_family: str = "Ubuntu Sans"
 
 

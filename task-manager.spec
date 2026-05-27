@@ -40,5 +40,5 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon=str(ROOT / "resources" / "icons" / "app_icon.png"),
+    icon=str(ROOT / "resources" / "icons" / "app_icon.ico"),
 )

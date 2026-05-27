@@ -44,18 +44,11 @@ def _setup_logging(log_file: Path) -> None:
 
 
 def setup_app(app: QApplication) -> None:
-    app.setWindowIcon(QIcon(str(resource_path("resources/icons/app_icon.png"))))
+    app.setWindowIcon(QIcon(str(resource_path("resources/icons/app_icon.ico"))))
     app.setApplicationName("task-manager")
     app.setApplicationDisplayName("Менеджер задач")
 
-    system = platform.system()
-    if system == "Windows":
-        import ctypes
-
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            "task.manager.app"
-        )
-    elif system == "Linux":
+    if platform.system() == "Linux":
         # Связывает процесс с .desktop-файлом для корректного отображения
         # иконки и имени приложения в Dock/Activities на Wayland и X11.
         # Требует установки task-manager.desktop (см. README).
@@ -63,6 +56,17 @@ def setup_app(app: QApplication) -> None:
 
 
 def main() -> int:
+    # Windows: AppUserModelID ОБЯЗАН быть установлен ДО создания QApplication.
+    # QApplication при инициализации создаёт внутренние HWND; Shell уже в этот
+    # момент ассоциирует кнопку панели задач с процессом. Если вызвать
+    # SetCurrentProcessExplicitAppUserModelID позже — taskbar-иконка не обновится.
+    if platform.system() == "Windows":
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "task.manager.app"
+        )
+
     # QApplication создаётся первым — без него QMessageBox работать не будет
     app = QApplication(sys.argv)
     setup_app(app)
