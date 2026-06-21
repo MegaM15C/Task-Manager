@@ -71,7 +71,7 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         self.body.addLayout(
             self._row(
                 "Основная тема",
-                "Выбор основной цветовой схемы оформления Активa",
+                "Выбор основной цветовой схемы оформления приложения",
                 control_widget=self._theme,
             )
         )
@@ -79,19 +79,19 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
         self.body.addLayout(
             self._row(
                 "Основной шрифт",
-                "Выбор основного шрифта интерфейса и текста в Активa",
+                "Выбор основного шрифта интерфейса и текста в приложении",
                 control_widget=self._font,
             )
         )
 
         self.body.addWidget(self._divider())
 
-        self._export_btn = QPushButton("Экспорт…", self)
+        self._export_btn = QPushButton("Экспорт", self)
         self._export_btn.setCursor(Qt.PointingHandCursor)
         self._export_btn.clicked.connect(self._export_clicked)
         self._export_btn.setEnabled(self._on_export is not None)
 
-        self._import_btn = QPushButton("Импорт…", self)
+        self._import_btn = QPushButton("Импорт", self)
         self._import_btn.setCursor(Qt.PointingHandCursor)
         self._import_btn.clicked.connect(self._import_clicked)
         self._import_btn.setEnabled(self._on_import is not None)
@@ -141,13 +141,11 @@ class SettingsDialog(OverlayDialog, DialogHelperMixin):
 
     def _set_accent_preview(self, hex_color: str) -> None:
         """Обновляет цвет круга-превью для акцентного цвета."""
-        self._accent_preview.setStyleSheet(
-            f"""
+        self._accent_preview.setStyleSheet(f"""
             QPushButton#AccentPreview {{
                 background: {hex_color};
             }}
-            """
-        )
+            """)
 
     def _pick_accent(self) -> None:
         """Открывает цветовой диалог и обновляет текущий акцентный цвет."""

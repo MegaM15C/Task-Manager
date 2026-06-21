@@ -1,5 +1,5 @@
 from src.theme.theme import ThemeTokens, DerivedTokens
-from src.utils.icons import icons  # noqa: F401 — used inside f-string QSS
+from src.utils.icons import icons 
 
 
 def controls_qss(tokens: ThemeTokens, der_tokens: DerivedTokens) -> str:

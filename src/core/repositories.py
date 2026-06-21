@@ -250,7 +250,7 @@ class TasksRepository:
             due=_today(),
         )
         self.add(
-            "Закрепите боковую панель, чтобы она оставалась открытой",
+            "Закрепите боковую панель",
             category_id=None,
             priority=1,
             due=_today(),

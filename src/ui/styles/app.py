@@ -37,7 +37,7 @@ def app_qss(tokens: ThemeTokens) -> str:
 def font_from_settings(s: Settings) -> QFont:
     """Создаёт базовый QFont на основе настроек пользователя."""
     f = QFont(s.font_family)
-    f.setPointSize(14)  # TO-DO: Сделать чтобы менялось, в данный момент не работает
+    f.setPointSize(14) 
     return f
 
 
